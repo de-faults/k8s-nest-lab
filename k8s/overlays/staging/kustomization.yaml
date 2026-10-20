@@ -1,0 +1,69 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nest-lab-staging
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+labels:
+  - pairs:
+      environment: staging
+
+# Like pointing at an ECR repo: <acct>.dkr.ecr.ap-southeast-1.amazonaws.com/nest-lab
+images:
+  - name: nest-lab
+    newName: localhost:5001/nest-lab
+    newTag: 0.1.0
+
+patches:
+  - target:
+      kind: Deployment
+      name: nest-lab
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: nest-lab
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+  - target:
+      kind: Ingress
+      name: nest-lab
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.nest-lab.localhost
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nest-lab-env
+      data:
+        APP_ENV: staging
+        LOG_LEVEL: debug
+        GREETING: Hello from STAGING
+        CHAOS_ENABLED: "true"
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nest-lab-files
+      data:
+        app-config.json: |
+          {
+            "featureFlags": {
+              "newCheckout": true,
+              "darkMode": true
+            },
+            "rateLimitPerMinute": 600,
+            "banner": "staging config"
+          }

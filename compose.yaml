@@ -1,0 +1,126 @@
+# Local EKS-like cluster: 1 control plane + 3 workers spread over 3 "AZs",
+# an NLB-style load balancer in front, and an ECR-style image registry.
+# k3s is a CNCF-certified Kubernetes distribution, so kubectl works the same.
+name: k8s-lab
+
+x-k3s: &k3s
+  image: rancher/k3s:${K3S_VERSION:-v1.35.9-k3s1}
+  privileged: true
+  restart: unless-stopped
+  tmpfs:
+    - /run
+    - /var/run
+  ulimits:
+    nproc: 65535
+    nofile:
+      soft: 65535
+      hard: 65535
+
+x-worker-env: &worker-env
+  K3S_URL: https://control-plane:6443
+  K3S_TOKEN: ${K3S_TOKEN:-k8s-lab-token}
+
+services:
+  control-plane:
+    <<: *k3s
+    hostname: control-plane
+    command:
+      - server
+      - --node-name=control-plane
+      # Tainted like the managed EKS control plane: no app workloads land here.
+      - --node-taint=node-role.kubernetes.io/control-plane:NoSchedule
+      - --tls-san=127.0.0.1
+    environment:
+      K3S_TOKEN: ${K3S_TOKEN:-k8s-lab-token}
+      K3S_KUBECONFIG_OUTPUT: /output/kubeconfig.yaml
+      K3S_KUBECONFIG_MODE: "644"
+    volumes:
+      - control-plane-data:/var/lib/rancher/k3s
+      - ./cluster/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
+      - ./.kube:/output
+    ports:
+      - "127.0.0.1:6443:6443"
+
+  # Worker labels mirror what EKS sets on managed nodes; k8s/ manifests
+  # spread pods across topology.kubernetes.io/zone.
+  worker-1a:
+    <<: *k3s
+    hostname: worker-1a
+    command:
+      - agent
+      - --node-name=worker-1a
+      - --node-label=topology.kubernetes.io/region=ap-southeast-1
+      - --node-label=topology.kubernetes.io/zone=ap-southeast-1a
+      - --node-label=node.kubernetes.io/instance-type=t3.medium
+      - --node-label=eks.amazonaws.com/nodegroup=lab-workers
+    environment: *worker-env
+    volumes:
+      - worker-1a-data:/var/lib/rancher/k3s
+      - worker-1a-node:/etc/rancher/node
+      - ./cluster/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
+    depends_on: [control-plane]
+
+  worker-1b:
+    <<: *k3s
+    hostname: worker-1b
+    command:
+      - agent
+      - --node-name=worker-1b
+      - --node-label=topology.kubernetes.io/region=ap-southeast-1
+      - --node-label=topology.kubernetes.io/zone=ap-southeast-1b
+      - --node-label=node.kubernetes.io/instance-type=t3.medium
+      - --node-label=eks.amazonaws.com/nodegroup=lab-workers
+    environment: *worker-env
+    volumes:
+      - worker-1b-data:/var/lib/rancher/k3s
+      - worker-1b-node:/etc/rancher/node
+      - ./cluster/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
+    depends_on: [control-plane]
+
+  worker-1c:
+    <<: *k3s
+    hostname: worker-1c
+    command:
+      - agent
+      - --node-name=worker-1c
+      - --node-label=topology.kubernetes.io/region=ap-southeast-1
+      - --node-label=topology.kubernetes.io/zone=ap-southeast-1c
+      - --node-label=node.kubernetes.io/instance-type=t3.medium
+      - --node-label=eks.amazonaws.com/nodegroup=lab-workers
+    environment: *worker-env
+    volumes:
+      - worker-1c-data:/var/lib/rancher/k3s
+      - worker-1c-node:/etc/rancher/node
+      - ./cluster/registries.yaml:/etc/rancher/k3s/registries.yaml:ro
+    depends_on: [control-plane]
+
+  # NLB stand-in: host :8080/:8443 -> ingress controller on every worker.
+  lb:
+    image: haproxy:${HAPROXY_VERSION:-lts-alpine}
+    restart: unless-stopped
+    volumes:
+      - ./cluster/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "127.0.0.1:${LB_HTTP_PORT:-8080}:80"
+      - "127.0.0.1:${LB_HTTPS_PORT:-8443}:443"
+      - "127.0.0.1:${LB_STATS_PORT:-8404}:8404"
+    depends_on: [worker-1a, worker-1b, worker-1c]
+
+  # ECR stand-in. Host port 5001 because macOS AirPlay Receiver owns 5000.
+  registry:
+    image: registry:${REGISTRY_VERSION:-3}
+    restart: unless-stopped
+    volumes:
+      - registry-data:/var/lib/registry
+    ports:
+      - "127.0.0.1:5001:5000"
+
+volumes:
+  control-plane-data:
+  worker-1a-data:
+  worker-1a-node:
+  worker-1b-data:
+  worker-1b-node:
+  worker-1c-data:
+  worker-1c-node:
+  registry-data:

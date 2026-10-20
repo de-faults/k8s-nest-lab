@@ -1,0 +1,830 @@
+<title>Kubernetes 101 Workshop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Hallmark · genre: modern-minimal · macrostructure: Docs home (Cobalt affinity) · theme: Cobalt (Thai font swap) · enrichment: none (typography + CSS diagrams) · nav: N9 edge-aligned · footer: Ft2 inline */
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R5 V4 */
+/* Layout: full-width hero (title left, cluster readout right) → one graphite band (request path) → sticky TOC + 70ch content column */
+:root {
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-2: oklch(96% 0.007 252);
+  --color-rule: oklch(90% 0.008 255);
+  --color-rule-2: oklch(82% 0.012 256);
+  --color-muted: oklch(50% 0.015 257);
+  --color-ink-2: oklch(34% 0.018 257);
+  --color-ink: oklch(24% 0.02 258);
+  --color-accent: oklch(52% 0.2 256);
+  --color-accent-ink: oklch(98.5% 0.004 250);
+  --color-accent-soft: oklch(94% 0.03 256);
+  --color-graphite: oklch(22% 0.016 260);
+  --color-graphite-2: oklch(27% 0.018 260);
+  --color-graphite-rule: oklch(34% 0.018 260);
+  --color-graphite-ink: oklch(92% 0.008 255);
+  --color-graphite-muted: oklch(70% 0.014 255);
+  --color-code-key: oklch(78% 0.12 256);
+  --color-ok: oklch(50% 0.13 155);
+  --color-warn: oklch(56% 0.13 70);
+  --color-bad: oklch(53% 0.19 27);
+  --color-ok-soft: oklch(95% 0.03 155);
+  --color-warn-soft: oklch(95% 0.04 80);
+  --color-bad-soft: oklch(95% 0.03 27);
+
+  --font-display: "Chakra Petch", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Thai", "Noto Sans Thai", "Sukhumvit Set", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.35rem;
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.2vw, 1.9rem);
+  --text-display: clamp(2.4rem, 1.6rem + 3.6vw, 4.2rem);
+
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 72px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-paper: oklch(17% 0.012 258);
+    --color-paper-2: oklch(21% 0.014 258);
+    --color-rule: oklch(29% 0.014 258);
+    --color-rule-2: oklch(38% 0.016 258);
+    --color-muted: oklch(70% 0.014 256);
+    --color-ink-2: oklch(85% 0.01 256);
+    --color-ink: oklch(95% 0.006 256);
+    --color-accent: oklch(74% 0.14 256);
+    --color-accent-ink: oklch(17% 0.012 258);
+    --color-accent-soft: oklch(27% 0.06 258);
+    --color-graphite: oklch(13% 0.012 260);
+    --color-graphite-2: oklch(19% 0.014 260);
+    --color-graphite-rule: oklch(30% 0.016 260);
+    --color-ok: oklch(76% 0.13 155);
+    --color-warn: oklch(80% 0.12 80);
+    --color-bad: oklch(74% 0.14 27);
+    --color-ok-soft: oklch(26% 0.04 155);
+    --color-warn-soft: oklch(27% 0.04 80);
+    --color-bad-soft: oklch(26% 0.04 27);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --color-paper: oklch(17% 0.012 258);
+  --color-paper-2: oklch(21% 0.014 258);
+  --color-rule: oklch(29% 0.014 258);
+  --color-rule-2: oklch(38% 0.016 258);
+  --color-muted: oklch(70% 0.014 256);
+  --color-ink-2: oklch(85% 0.01 256);
+  --color-ink: oklch(95% 0.006 256);
+  --color-accent: oklch(74% 0.14 256);
+  --color-accent-ink: oklch(17% 0.012 258);
+  --color-accent-soft: oklch(27% 0.06 258);
+  --color-graphite: oklch(13% 0.012 260);
+  --color-graphite-2: oklch(19% 0.014 260);
+  --color-graphite-rule: oklch(30% 0.016 260);
+  --color-ok: oklch(76% 0.13 155);
+  --color-warn: oklch(80% 0.12 80);
+  --color-bad: oklch(74% 0.14 27);
+  --color-ok-soft: oklch(26% 0.04 155);
+  --color-warn-soft: oklch(27% 0.04 80);
+  --color-bad-soft: oklch(26% 0.04 27);
+  color-scheme: dark;
+}
+
+html, body { overflow-x: clip; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.75;
+}
+.wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (min-width: 720px) {
+  .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); }
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-style: normal;
+  text-wrap: balance;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  margin: 0;
+}
+h2 { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-size: var(--text-lg); font-weight: 600; }
+p { margin: 0; }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+:not(pre) > code {
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  padding: 0 0.3em;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+
+/* Top bar */
+.topbar { border-bottom: 1px solid var(--color-rule); }
+.topbar .wrap { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); justify-content: space-between; align-items: center; padding-block: var(--space-md); }
+.wordmark { font-family: var(--font-mono); font-weight: 500; font-size: var(--text-sm); color: var(--color-ink); white-space: nowrap; }
+.wordmark b { color: var(--color-accent); font-weight: 500; }
+
+/* Hero */
+.hero .wrap {
+  display: grid;
+  gap: var(--space-2xl);
+  padding-block: var(--space-3xl) var(--space-2xl);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+@media (min-width: 960px) { .hero .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); } }
+.hero h1 { font-size: var(--text-display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.hero h1 span { color: var(--color-accent); }
+.hero .lede { font-size: var(--text-lg); margin-top: var(--space-lg); max-width: 34em; }
+.hero .meta { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); margin-top: var(--space-xl); }
+.hero .meta div { display: grid; gap: 2px; }
+.hero .meta strong { color: var(--color-ink); font-weight: 600; font-size: var(--text-sm); }
+
+/* Code blocks */
+.code {
+  position: relative;
+  margin: 0;
+  background: var(--color-graphite);
+  border: 1px solid var(--color-graphite-rule);
+  border-radius: var(--radius-md);
+  color: var(--color-graphite-ink);
+  min-width: 0;
+}
+.code figcaption {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-md);
+  border-bottom: 1px solid var(--color-graphite-rule);
+  font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.04em;
+  color: var(--color-graphite-muted);
+}
+.code pre {
+  margin: 0; padding: var(--space-md);
+  overflow-x: auto;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7;
+  tab-size: 2;
+}
+.code .c { color: var(--color-graphite-muted); }
+.code .k { color: var(--color-code-key); }
+.code .ok { color: oklch(78% 0.14 155); }
+.code .bad { color: oklch(74% 0.15 27); }
+.copy {
+  font: 500 var(--text-xs)/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--color-graphite-ink);
+  background: var(--color-graphite-2);
+  border: 1px solid var(--color-graphite-rule);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.copy:hover { border-color: var(--color-code-key); }
+.copy:active { transform: translateY(1px); }
+.copy[data-state="done"] { color: oklch(78% 0.14 155); }
+
+/* Graphite band: request path */
+.band { background: var(--color-graphite); color: var(--color-graphite-ink); }
+.band .wrap { padding-block: var(--space-3xl); display: grid; gap: var(--space-xl); }
+.band h2 { color: var(--color-graphite-ink); }
+.band .label { color: var(--color-graphite-muted); }
+.band p { color: var(--color-graphite-muted); max-width: 62ch; }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-xs); grid-template-columns: minmax(0, 1fr); counter-reset: hop; }
+@media (min-width: 900px) { .flow { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.flow li {
+  border: 1px solid var(--color-graphite-rule);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  display: grid; gap: var(--space-2xs); align-content: start;
+  background: var(--color-graphite-2);
+  counter-increment: hop;
+  min-width: 0;
+}
+.flow li::before { content: counter(hop, decimal-leading-zero); font: 500 var(--text-xs)/1 var(--font-mono); color: var(--color-code-key); }
+.flow b { font-family: var(--font-display); font-weight: 600; color: var(--color-graphite-ink); font-size: var(--text-base); }
+.flow span { font-size: var(--text-sm); color: var(--color-graphite-muted); line-height: 1.55; }
+.flow code { font-size: 0.78rem; color: var(--color-code-key); overflow-wrap: anywhere; }
+
+/* Docs layout */
+.docs .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xl);
+  padding-block: var(--space-3xl);
+}
+@media (min-width: 1000px) { .docs .wrap { grid-template-columns: 220px minmax(0, 1fr); gap: var(--space-3xl); } }
+.toc { min-width: 0; }
+.toc details { border: 1px solid var(--color-rule); border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); }
+.toc summary { cursor: pointer; font-weight: 600; color: var(--color-ink); }
+.toc ol { list-style: none; margin: var(--space-sm) 0 0; padding: 0; display: grid; gap: 2px; }
+.toc a {
+  display: block; padding: 4px 10px; border-radius: var(--radius-sm);
+  color: var(--color-ink-2); text-decoration: none; font-size: var(--text-sm); line-height: 1.5;
+  border-left: 2px solid transparent;
+}
+.toc a:hover { color: var(--color-ink); background: var(--color-paper-2); }
+.toc a[aria-current="true"] { color: var(--color-accent); border-left-color: var(--color-accent); background: var(--color-accent-soft); }
+@media (min-width: 1000px) {
+  .toc nav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--space-lg)); }
+  .toc details { border: 0; padding: 0; }
+  .toc summary { list-style: none; pointer-events: none; }
+  .toc summary::-webkit-details-marker { display: none; }
+}
+
+.content { min-width: 0; max-width: 74ch; display: grid; gap: var(--space-3xl); }
+.chapter { display: grid; gap: var(--space-lg); scroll-margin-top: var(--space-lg); min-width: 0; }
+.chapter > header { display: grid; gap: var(--space-2xs); padding-bottom: var(--space-md); border-bottom: 1px solid var(--color-rule); }
+.chapter h3 { margin-top: var(--space-xs); }
+.chapter ul, .chapter ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: var(--space-xs); }
+.chapter li::marker { color: var(--color-muted); }
+
+/* Tables */
+.table-scroll { overflow-x: auto; border: 1px solid var(--color-rule); border-radius: var(--radius-sm); }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); line-height: 1.6; }
+th, td { text-align: left; vertical-align: top; padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-rule); }
+tr:last-child td { border-bottom: 0; }
+th { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted); background: var(--color-paper-2); white-space: nowrap; }
+td code { white-space: nowrap; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); white-space: nowrap; color: var(--color-ink); }
+
+/* Cluster map */
+.cluster { display: grid; gap: var(--space-sm); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .cluster { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.node {
+  border: 1px solid var(--color-rule-2); border-radius: var(--radius-sm);
+  padding: var(--space-md); display: grid; gap: var(--space-xs); align-content: start; min-width: 0;
+  background: var(--color-paper);
+}
+.node--cp { grid-column: 1 / -1; background: var(--color-paper-2); }
+.node h4 { margin: 0; font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 500; color: var(--color-ink); }
+.node p { font-size: var(--text-sm); line-height: 1.55; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 500 0.74rem/1 var(--font-mono);
+  padding: 5px 8px; border-radius: 4px;
+  border: 1px solid var(--color-rule-2); color: var(--color-ink-2); background: var(--color-paper-2);
+  white-space: nowrap;
+}
+.chip--app { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-soft); }
+
+/* Callouts */
+.note {
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md) var(--space-lg);
+  display: grid; gap: var(--space-xs);
+  background: var(--color-paper-2);
+}
+.note .label { color: var(--color-accent); }
+.note--warn { background: var(--color-warn-soft); border-color: var(--color-warn); }
+.note--warn .label { color: var(--color-warn); }
+
+/* Two-up compare */
+.pair { display: grid; gap: var(--space-sm); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pair > div { border: 1px solid var(--color-rule); border-radius: var(--radius-sm); padding: var(--space-md); display: grid; gap: var(--space-xs); align-content: start; min-width: 0; }
+.pair h4 { margin: 0; font-family: var(--font-display); font-size: var(--text-base); font-weight: 600; color: var(--color-ink); }
+.pair p { font-size: var(--text-sm); line-height: 1.65; }
+
+/* Timeline */
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--space-md); padding-block: var(--space-sm); border-bottom: 1px dashed var(--color-rule); }
+.timeline li:last-child { border-bottom: 0; }
+.timeline .t { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.timeline p { font-size: var(--text-sm); line-height: 1.65; }
+@media (max-width: 420px) { .timeline li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* Measured results */
+.results { display: grid; gap: var(--space-sm); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.result { border: 1px solid var(--color-rule); border-radius: var(--radius-sm); padding: var(--space-md); display: grid; gap: var(--space-2xs); min-width: 0; }
+.result strong { font-family: var(--font-mono); font-weight: 500; font-size: var(--text-xl); color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.result p { font-size: var(--text-sm); line-height: 1.6; }
+
+/* Status pills in troubleshooting */
+.status { font: 500 0.74rem/1 var(--font-mono); padding: 5px 8px; border-radius: 4px; white-space: nowrap; display: inline-block; }
+.status--bad { color: var(--color-bad); background: var(--color-bad-soft); }
+.status--warn { color: var(--color-warn); background: var(--color-warn-soft); }
+
+/* Quiz */
+.quiz { display: grid; gap: var(--space-xs); }
+.quiz details { border: 1px solid var(--color-rule); border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); }
+.quiz details[open] { border-color: var(--color-rule-2); background: var(--color-paper-2); }
+.quiz summary { cursor: pointer; color: var(--color-ink); font-weight: 500; }
+.quiz summary::marker { color: var(--color-accent); }
+.quiz details p { margin-top: var(--space-xs); font-size: var(--text-sm); }
+
+.footer { border-top: 1px solid var(--color-rule); }
+.footer .wrap { padding-block: var(--space-lg); display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); justify-content: space-between; font-size: var(--text-sm); color: var(--color-muted); }
+</style>
+
+<header class="topbar">
+  <div class="wrap">
+    <span class="wordmark">k8s-nest-lab <b>/</b> 101</span>
+    <span class="label">เอกสารประกอบการสอน · ใช้คู่กับ LAB.md</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="label">Workshop · ~4 ชั่วโมง · ไม่มีค่าใช้จ่าย AWS</p>
+      <h1 style="margin-top: var(--space-sm)">Kubernetes 101 บน <span>laptop</span> ที่หน้าตาเหมือน EKS</h1>
+      <p class="lede">เรียนแนวคิดหลักของ Kubernetes ผ่าน NestJS app จริง บน cluster 1 control plane + 3 worker ที่กระจาย 3 zone รันด้วย Docker Compose อย่างเดียว ทุกคำสั่งในหน้านี้ใช้ได้กับ EKS แทบไม่ต้องแก้</p>
+      <div class="meta">
+        <div><span class="label">ผู้เรียน</span><strong>Dev ที่ใช้ Docker เป็นแล้ว</strong></div>
+        <div><span class="label">Kubernetes</span><strong>v1.35 (k3s)</strong></div>
+        <div><span class="label">App</span><strong>NestJS 12 · Node 24</strong></div>
+      </div>
+    </div>
+    <figure class="code" aria-label="ผลลัพธ์จากการสร้าง cluster">
+      <figcaption><span>terminal · สร้าง cluster</span><button class="copy" type="button" data-copy="hero-cmd">คัดลอก</button></figcaption>
+<pre id="hero-cmd"><code><span class="c"># 1 คำสั่งได้ cluster ทั้งก้อน (~1 นาที)</span>
+make up &amp;&amp; make image &amp;&amp; make deploy
+export KUBECONFIG=$PWD/.kube/kubeconfig.yaml
+
+kubectl get nodes -L topology.kubernetes.io/zone
+<span class="c">NAME            STATUS   ROLES           ZONE</span>
+control-plane   <span class="ok">Ready</span>    control-plane
+worker-1a       <span class="ok">Ready</span>    &lt;none&gt;          <span class="k">ap-southeast-1a</span>
+worker-1b       <span class="ok">Ready</span>    &lt;none&gt;          <span class="k">ap-southeast-1b</span>
+worker-1c       <span class="ok">Ready</span>    &lt;none&gt;          <span class="k">ap-southeast-1c</span></code></pre>
+    </figure>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="path-title">
+  <div class="wrap">
+    <div style="display:grid; gap: var(--space-xs)">
+      <span class="label">ภาพรวมก่อนเริ่ม</span>
+      <h2 id="path-title">หนึ่ง request เดินทางผ่านอะไรบ้าง</h2>
+      <p>ทั้ง workshop คือการเปิดดูทีละกล่องในเส้นทางนี้ เวลา <code>curl http://api.nest-lab.localhost:8080/</code> แล้วได้ JSON กลับมา request ผ่าน 6 จุด แต่ละจุดเทียบกับของจริงบน AWS ได้</p>
+    </div>
+    <ol class="flow">
+      <li><b>Client</b><span>curl หรือ browser บนเครื่อง</span><code>:8080</code></li>
+      <li><b>Load balancer</b><span>HAProxy กระจายไปทุก worker แทน NLB</span><code>lb</code></li>
+      <li><b>Ingress</b><span>Traefik ดู Host header เลือก Service แทน ALB</span><code>Ingress</code></li>
+      <li><b>Service</b><span>IP คงที่ + DNS ชี้ไปหา pod ที่ ready</span><code>svc/nest-lab</code></li>
+      <li><b>Pod</b><span>container NestJS 1 ตัว ได้ IP ของตัวเอง</span><code>nest-lab-xxxx</code></li>
+      <li><b>Config</b><span>ค่าจาก ConfigMap และ Secret ที่ inject ตอน start</span><code>cm / secret</code></li>
+    </ol>
+  </div>
+</section>
+
+<main class="docs">
+  <div class="wrap">
+    <aside class="toc">
+      <nav aria-label="สารบัญ">
+        <details id="toc-details" open>
+          <summary>สารบัญ</summary>
+          <ol>
+            <li><a href="#prep">0 · เตรียมก่อนสอน</a></li>
+            <li><a href="#why">1 · ทำไมต้อง Kubernetes</a></li>
+            <li><a href="#arch">2 · สถาปัตยกรรม cluster</a></li>
+            <li><a href="#kubectl">3 · kubectl</a></li>
+            <li><a href="#objects">4 · Object หลัก</a></li>
+            <li><a href="#config">5 · ConfigMap และ Secret</a></li>
+            <li><a href="#lifecycle">6 · Probe และ rollout</a></li>
+            <li><a href="#scale">7 · Scale และทนพัง</a></li>
+            <li><a href="#security">8 · Security baseline</a></li>
+            <li><a href="#aws">9 · จาก lab ไป AWS</a></li>
+            <li><a href="#debug">10 · Debug ตามสถานะ pod</a></li>
+            <li><a href="#quiz">11 · คำถามทบทวน</a></li>
+          </ol>
+        </details>
+      </nav>
+    </aside>
+
+    <div class="content">
+
+      <section class="chapter" id="prep">
+        <header><span class="label">บทที่ 0 · สำหรับผู้สอน</span><h2>เตรียมก่อนวันสอน</h2></header>
+        <p>ปัญหาที่เจอบ่อยในห้องเรียนไม่ใช่ Kubernetes แต่เป็นเครื่องผู้เรียน เตรียม 4 อย่างนี้ล่วงหน้า</p>
+        <ul>
+          <li>Docker Desktop ให้ RAM อย่างน้อย 4 GB (cluster ใช้จริงประมาณ 1.5–2 GB)</li>
+          <li>ให้ผู้เรียนรัน <code>docker compose pull</code> และ <code>make image</code> ที่บ้านก่อน image รวมกันหลายร้อย MB ถ้าดึงพร้อมกันบน Wi-Fi ห้องเรียนจะช้ามาก</li>
+          <li>port ที่ต้องว่าง: <code>6443</code> API server, <code>8080</code> LB, <code>8404</code> LB stats, <code>5001</code> registry (macOS ใช้ 5000 กับ AirPlay อยู่แล้ว)</li>
+          <li>ปิด sleep ระหว่างสอน (<code>caffeinate -d</code> บน macOS)</li>
+        </ul>
+        <div class="note note--warn">
+          <span class="label">เจอมาแล้วตอนทดสอบ</span>
+          <p>Mac sleep ระหว่าง lab ทำให้นาฬิกาใน cluster กระโดด ผลคือ API server ตอบ <code>Unauthorized</code> ชั่วคราว rollout ขึ้น <code>exceeded its progress deadline</code> และบาง pod restart เอง ถ้าเห็นอาการแปลก ๆ ให้รัน <code>make stop &amp;&amp; make start</code> ก่อนเสียเวลา debug</p>
+        </div>
+        <h3>แผนการสอนที่แนะนำ</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>เวลา</th><th>หัวข้อ</th><th>Lab ใน LAB.md</th></tr></thead>
+            <tbody>
+              <tr><td class="num">0:00–0:20</td><td>ทำไมต้อง Kubernetes, desired state</td><td>–</td></tr>
+              <tr><td class="num">0:20–0:50</td><td>สถาปัตยกรรม, เปิด cluster</td><td>Lab 1</td></tr>
+              <tr><td class="num">0:50–1:30</td><td>kubectl และ object หลัก</td><td>Lab 2</td></tr>
+              <tr><td class="num">1:30–1:40</td><td>พัก</td><td>–</td></tr>
+              <tr><td class="num">1:40–2:30</td><td>ConfigMap และ Secret</td><td>Lab 3, 4</td></tr>
+              <tr><td class="num">2:30–3:10</td><td>Probe, rolling update, rollback</td><td>Lab 5, 6</td></tr>
+              <tr><td class="num">3:10–3:50</td><td>HPA, drain, AZ ล่ม</td><td>Lab 8, 9, 10</td></tr>
+              <tr><td class="num">3:50–4:10</td><td>NetworkPolicy, RBAC, map ไป AWS, Q&amp;A</td><td>Lab 7, 11</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="why">
+        <header><span class="label">บทที่ 1</span><h2>ทำไมต้อง Kubernetes</h2></header>
+        <p>Docker ตอบคำถามว่า "รัน app 1 ตัวยังไง" แต่ production ต้องตอบคำถามที่ยากกว่า: รันกี่ตัว บนเครื่องไหน ตัวไหนตายแล้วใครเปิดใหม่ ออก version ใหม่ยังไงไม่ให้ user เห็น error และ config ต่างกันต่อ environment ยังไง</p>
+        <p>Kubernetes แก้ด้วยแนวคิดเดียวคือ <strong>desired state</strong> เราเขียน YAML บอกว่า "อยากได้ nest-lab 3 ตัว แต่ละตัวมี CPU 100m" แล้ว controller ใน cluster จะวนเช็คตลอดเวลาว่าของจริงตรงกับที่ขอไหม ถ้าไม่ตรงก็แก้ให้ตรง เรียกว่า reconciliation loop</p>
+        <div class="pair">
+          <div><h4>Imperative (สั่งทีละขั้น)</h4><p>"ssh เข้าเครื่อง B แล้ว docker run อีกตัว" ถ้าเครื่อง B ตายตอนตี 3 ไม่มีใครสั่งให้</p></div>
+          <div><h4>Declarative (บอกผลลัพธ์)</h4><p><code>replicas: 3</code> pod ตาย 1 ตัว ReplicaSet controller เห็นว่าเหลือ 2 จึงสร้างใหม่เองภายในไม่กี่วินาที</p></div>
+        </div>
+        <div class="note">
+          <span class="label">ผู้สอน · demo 30 วินาที</span>
+          <p>เปิด <code>kubectl -n nest-lab-prod get pod -w</code> ค้างไว้ แล้วลบ pod 1 ตัวให้ผู้เรียนเห็นตัวใหม่โผล่มาแทนทันที เป็นภาพที่อธิบาย desired state ได้ดีที่สุด</p>
+        </div>
+      </section>
+
+      <section class="chapter" id="arch">
+        <header><span class="label">บทที่ 2</span><h2>สถาปัตยกรรม cluster</h2></header>
+        <p>cluster แบ่งเป็น 2 ส่วน: <strong>control plane</strong> ที่ตัดสินใจ กับ <strong>worker node</strong> ที่รัน container จริง ใน lab แต่ละกล่องคือ container 1 ตัวใน <code>compose.yaml</code></p>
+        <div class="cluster" role="img" aria-label="แผนภาพ cluster: control plane 1 ตัว และ worker 3 ตัวใน 3 zone">
+          <div class="node node--cp">
+            <h4>control-plane · มี taint ไม่รับ app</h4>
+            <div class="chips">
+              <span class="chip">kube-apiserver</span><span class="chip">etcd (k3s ใช้ sqlite)</span><span class="chip">scheduler</span><span class="chip">controller-manager</span>
+            </div>
+            <p>ทุกคำสั่ง kubectl วิ่งเข้า API server ที่ <code>127.0.0.1:6443</code> บน EKS ส่วนนี้ AWS ดูแลให้และเราไม่เห็นเป็น node</p>
+          </div>
+          <div class="node">
+            <h4>worker-1a</h4><span class="label">ap-southeast-1a</span>
+            <div class="chips"><span class="chip">kubelet</span><span class="chip">kube-proxy</span><span class="chip">containerd</span><span class="chip chip--app">nest-lab</span></div>
+          </div>
+          <div class="node">
+            <h4>worker-1b</h4><span class="label">ap-southeast-1b</span>
+            <div class="chips"><span class="chip">kubelet</span><span class="chip">kube-proxy</span><span class="chip">containerd</span><span class="chip chip--app">nest-lab</span></div>
+          </div>
+          <div class="node">
+            <h4>worker-1c</h4><span class="label">ap-southeast-1c</span>
+            <div class="chips"><span class="chip">kubelet</span><span class="chip">kube-proxy</span><span class="chip">containerd</span><span class="chip chip--app">nest-lab</span></div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Component</th><th>หน้าที่</th></tr></thead>
+            <tbody>
+              <tr><td><code>kube-apiserver</code></td><td>ประตูเดียวเข้า cluster ตรวจสิทธิ์ (RBAC) แล้วเก็บ object ลง etcd</td></tr>
+              <tr><td><code>etcd</code></td><td>ฐานข้อมูล key-value ที่เก็บ desired state ทั้งหมด</td></tr>
+              <tr><td><code>scheduler</code></td><td>เลือก node ให้ pod ใหม่ ดู resource ที่ขอ, taint, zone spread</td></tr>
+              <tr><td><code>controller-manager</code></td><td>รวม controller ทั้งหมด เช่น Deployment, ReplicaSet, Node lifecycle</td></tr>
+              <tr><td><code>kubelet</code></td><td>agent บนทุก node สั่ง containerd รัน container และยิง probe</td></tr>
+              <tr><td><code>kube-proxy</code></td><td>ทำ iptables ให้ IP ของ Service วิ่งไปหา pod</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="kubectl">
+        <header><span class="label">บทที่ 3</span><h2>kubectl: ไวยากรณ์เดียว ใช้ได้ทุก object</h2></header>
+        <p>จำรูปแบบเดียว: <code>kubectl [-n namespace] &lt;verb&gt; &lt;resource&gt; [name] [flags]</code> เปลี่ยนแค่ resource ก็ใช้กับ object ไหนก็ได้</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>อยากรู้/อยากทำ</th><th>คำสั่ง</th></tr></thead>
+            <tbody>
+              <tr><td>มีอะไรอยู่บ้าง</td><td><code>get pod -o wide</code> · <code>get all</code> · <code>get pod -A</code></td></tr>
+              <tr><td>ทำไมมันเป็นแบบนี้</td><td><code>describe pod &lt;name&gt;</code> (ดู Events ล่างสุดก่อนเสมอ)</td></tr>
+              <tr><td>app พูดอะไร</td><td><code>logs deploy/nest-lab</code> · <code>logs &lt;pod&gt; --previous</code> · <code>-f</code></td></tr>
+              <tr><td>เข้าไปดูข้างใน</td><td><code>exec -it deploy/nest-lab -- sh</code></td></tr>
+              <tr><td>ยิงตรงเข้า pod/service</td><td><code>port-forward svc/nest-lab 3000:80</code></td></tr>
+              <tr><td>สร้าง/แก้จากไฟล์</td><td><code>apply -f file.yaml</code> · <code>apply -k k8s/overlays/staging</code></td></tr>
+              <tr><td>ดูก่อนว่าจะเปลี่ยนอะไร</td><td><code>diff -k k8s/overlays/staging</code></td></tr>
+              <tr><td>field นี้คืออะไร</td><td><code>explain deployment.spec.strategy</code></td></tr>
+              <tr><td>ดึงค่าเฉพาะจุด</td><td><code>-o jsonpath='{.spec.replicas}'</code> · <code>-o yaml</code></td></tr>
+              <tr><td>เฝ้าดูการเปลี่ยนแปลง</td><td><code>get pod -w</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="code">
+          <figcaption><span>terminal · ตั้งค่าครั้งเดียวต่อ shell</span><button class="copy" type="button" data-copy="setup-cmd">คัดลอก</button></figcaption>
+<pre id="setup-cmd"><code>export KUBECONFIG=$PWD/.kube/kubeconfig.yaml
+alias k=kubectl
+S=nest-lab-staging   P=nest-lab-prod
+k config set-context --current --namespace=$S   <span class="c"># ไม่ต้องพิมพ์ -n ทุกครั้ง</span></code></pre>
+        </figure>
+      </section>
+
+      <section class="chapter" id="objects">
+        <header><span class="label">บทที่ 4</span><h2>Object หลักที่ต้องรู้</h2></header>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Object</th><th>คืออะไร</th><th>ใน lab</th></tr></thead>
+            <tbody>
+              <tr><td><code>Namespace</code></td><td>ห้องแยก resource และสิทธิ์</td><td><code>nest-lab-staging</code>, <code>nest-lab-prod</code></td></tr>
+              <tr><td><code>Pod</code></td><td>หน่วยเล็กที่สุดที่ schedule ได้ มี IP ของตัวเอง ตายแล้วไม่ฟื้น</td><td><code>nest-lab-75459858cb-xxxxx</code></td></tr>
+              <tr><td><code>ReplicaSet</code></td><td>รักษาจำนวน pod ให้ครบ</td><td>สร้างโดย Deployment อัตโนมัติ</td></tr>
+              <tr><td><code>Deployment</code></td><td>จัดการ version ของ ReplicaSet ทำ rolling update และ rollback</td><td><code>deploy/nest-lab</code></td></tr>
+              <tr><td><code>Service</code></td><td>IP + DNS คงที่ หา pod ด้วย label selector</td><td><code>http://nest-lab</code> ใน namespace</td></tr>
+              <tr><td><code>Ingress</code></td><td>route HTTP จากนอก cluster ตาม host/path</td><td><code>staging.nest-lab.localhost</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Label และ selector คือกาวของทุกอย่าง</strong> Deployment, Service, PDB, HPA และ NetworkPolicy ไม่ได้อ้าง pod ด้วยชื่อ แต่หา pod ที่มี label <code>app.kubernetes.io/name: nest-lab</code> ผู้เรียนที่เข้าใจข้อนี้จะ debug "Service ไม่มี endpoint" ได้เอง</p>
+        <figure class="code">
+          <figcaption><span>k8s/base/deployment.yaml · ตัดมาเฉพาะส่วนสำคัญ</span><button class="copy" type="button" data-copy="deploy-yaml">คัดลอก</button></figcaption>
+<pre id="deploy-yaml"><code><span class="k">spec</span>:
+  <span class="k">replicas</span>: 3
+  <span class="k">selector</span>:
+    <span class="k">matchLabels</span>: { app.kubernetes.io/name: nest-lab }   <span class="c"># ต้องตรงกับ label ของ pod</span>
+  <span class="k">strategy</span>:
+    <span class="k">rollingUpdate</span>: { maxSurge: 1, maxUnavailable: 0 }  <span class="c"># เพิ่มก่อน ลดทีหลัง</span>
+  <span class="k">template</span>:
+    <span class="k">metadata</span>:
+      <span class="k">labels</span>: { app.kubernetes.io/name: nest-lab }
+    <span class="k">spec</span>:
+      <span class="k">containers</span>:
+        - <span class="k">name</span>: app
+          <span class="k">image</span>: localhost:5001/nest-lab:0.1.0
+          <span class="k">envFrom</span>:
+            - <span class="k">configMapRef</span>: { name: nest-lab-env }
+          <span class="k">resources</span>:
+            <span class="k">requests</span>: { cpu: 100m, memory: 128Mi }
+            <span class="k">limits</span>:   { cpu: 500m, memory: 256Mi }</code></pre>
+        </figure>
+      </section>
+
+      <section class="chapter" id="config">
+        <header><span class="label">บทที่ 5 · หัวใจของ workshop</span><h2>ConfigMap และ Secret</h2></header>
+        <p>หลักคือ image เดียวกันใช้ได้ทุก environment ส่วนที่ต่างกันอยู่ใน ConfigMap (ค่าทั่วไป) และ Secret (ค่าลับ) lab มี ConfigMap 2 ตัวเพื่อให้เห็นความต่างของการ inject 2 แบบ เปิด <code>/config</code> ดูได้ทั้งคู่</p>
+        <div class="pair">
+          <div>
+            <h4><code>nest-lab-env</code> · inject เป็น env</h4>
+            <p>ค่าถูกอ่านครั้งเดียวตอน container start แก้ ConfigMap แล้ว pod ที่รันอยู่<strong>ไม่เห็น</strong>จนกว่าจะ <code>rollout restart</code></p>
+          </div>
+          <div>
+            <h4><code>nest-lab-files</code> · mount เป็นไฟล์</h4>
+            <p>kubelet อัปเดตไฟล์ให้เองภายในประมาณ 1 นาที app อ่านไฟล์ใหม่ทุก request จึงเปลี่ยน<strong>โดยไม่ต้อง restart</strong> (ยกเว้น mount ด้วย <code>subPath</code>)</p>
+          </div>
+        </div>
+        <figure class="code">
+          <figcaption><span>terminal · demo env กับ file</span><button class="copy" type="button" data-copy="cm-demo">คัดลอก</button></figcaption>
+<pre id="cm-demo"><code>STG=http://staging.nest-lab.localhost:8080
+k -n $S patch cm nest-lab-env   --type merge -p '{"data":{"GREETING":"changed"}}'
+k -n $S patch cm nest-lab-files --type merge \
+  -p '{"data":{"app-config.json":"{\"banner\":\"hot reloaded\"}"}}'
+
+watch -n2 "curl -s $STG/config | jq '{env: .fromEnv.GREETING, file: .fromFile.data.banner}'"
+<span class="c"># file เปลี่ยนเองใน ~30–60 วิ  ·  env ยังเป็นค่าเดิม</span>
+k -n $S rollout restart deploy/nest-lab   <span class="c"># env ถึงจะเปลี่ยน</span></code></pre>
+        </figure>
+        <h3>3 วิธีสร้าง ConfigMap</h3>
+        <figure class="code">
+          <figcaption><span>terminal · imperative</span><button class="copy" type="button" data-copy="cm-create">คัดลอก</button></figcaption>
+<pre id="cm-create"><code>k create configmap demo --from-literal=A=1 --from-literal=B=two
+k create configmap demo-file --from-file=settings.json=./settings.json
+k create configmap demo-env --from-env-file=./app.env
+
+<span class="c"># pattern ที่ใช้ใน CI: render เป็น YAML แล้ว apply ซ้ำกี่รอบก็ได้</span>
+k create configmap demo --from-literal=A=2 --dry-run=client -o yaml | k apply -f -</code></pre>
+        </figure>
+        <h3>Pattern production: configMapGenerator</h3>
+        <p>ConfigMap ชื่อคงที่มี 2 ปัญหา คือแก้แล้ว pod ไม่ restart และ <code>rollout undo</code> ไม่ย้อน config ให้ Kustomize แก้ด้วยการต่อ hash ของเนื้อหาไว้ท้ายชื่อ เช่น <code>nest-lab-extra-4g86855k5g</code> พอค่าเปลี่ยน ชื่อเปลี่ยน pod template เปลี่ยน Deployment จึง rollout เอง และ ConfigMap ชื่อเก่ายังอยู่ให้ rollback ได้ ตัวอย่างอยู่ที่ <code>k8s/lab/generator/</code></p>
+        <h3>Secret</h3>
+        <ul>
+          <li>ค่าใน Secret เป็นแค่ <strong>base64 ไม่ได้เข้ารหัส</strong> ใครมีสิทธิ์ <code>get secret</code> ก็อ่านได้ ควบคุมด้วย RBAC</li>
+          <li>Secret ที่ inject เป็น env ต้อง restart เหมือน ConfigMap หลัง rotate</li>
+          <li>ถ้า pod อ้าง Secret ที่ไม่มีอยู่ จะค้างที่ <code>CreateContainerConfigError</code> พอสร้าง Secret แล้วจะเดินต่อเอง</li>
+          <li>บน AWS เก็บค่าจริงใน Secrets Manager แล้วใช้ External Secrets Operator sync เข้ามา ไม่ commit Secret ลง git</li>
+        </ul>
+        <div class="note">
+          <span class="label">ผู้สอน · Lab 3.6 ห้ามข้าม</span>
+          <p>ให้ผู้เรียนใส่ <code>SHUTDOWN_DELAY_MS: "abc"</code> แล้ว restart จะเห็น pod ใหม่ CrashLoopBackOff แต่ <code>curl</code> ยังได้ 200 เพราะ <code>maxUnavailable: 0</code> ทำให้ pod เก่าไม่ถูกปิดจนกว่าตัวใหม่จะ ready เป็นบทเรียนที่ทำให้คนเห็นคุณค่าของ rolling update ทันที</p>
+        </div>
+      </section>
+
+      <section class="chapter" id="lifecycle">
+        <header><span class="label">บทที่ 6</span><h2>Probe, graceful shutdown และ rolling update</h2></header>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Probe</th><th>ถามว่า</th><th>ถ้า fail</th><th>endpoint</th></tr></thead>
+            <tbody>
+              <tr><td><code>startupProbe</code></td><td>boot เสร็จหรือยัง</td><td>ยังไม่เริ่มเช็คตัวอื่น ถ้าเกินเวลาจะ restart</td><td><code>/health/live</code></td></tr>
+              <tr><td><code>readinessProbe</code></td><td>พร้อมรับ traffic ไหม</td><td>ถอดออกจาก Service <strong>ไม่ restart</strong></td><td><code>/health/ready</code></td></tr>
+              <tr><td><code>livenessProbe</code></td><td>process ยังตอบได้ไหม</td><td>kubelet restart container</td><td><code>/health/live</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note note--warn">
+          <span class="label">ความผิดพลาดยอดฮิต</span>
+          <p>อย่าให้ liveness เช็ค database ถ้า DB สะดุด 10 วินาที liveness จะ fail พร้อมกันทุก pod แล้ว kubelet restart ทั้งหมดในคราวเดียว ทำให้ระบบล่มหนักกว่าเดิม</p>
+        </div>
+        <h3>เกิดอะไรขึ้นตอน pod ถูกปิด</h3>
+        <p>จุดที่คนส่วนใหญ่ไม่รู้คือ Kubernetes <strong>ถอด pod ออกจาก endpoint พร้อมกับส่ง SIGTERM</strong> ไม่ได้ถอดก่อน ถ้า app ปิดทันที request ที่ load balancer ยังส่งมาจะ error</p>
+        <ol class="timeline">
+          <li><span class="t">t = 0</span><p>Deployment สั่งลบ pod เก่า สถานะเป็น Terminating</p></li>
+          <li><span class="t">t = 0</span><p>2 อย่างเกิด<strong>พร้อมกัน</strong>: endpoint controller เริ่มถอด pod ออกจาก Service และ kubelet ส่ง SIGTERM ให้ container</p></li>
+          <li><span class="t">0 – 5 s</span><p>NestJS รับ SIGTERM แล้วให้ <code>/health/ready</code> ตอบ 503 แต่ยังเสิร์ฟ request ต่อ รอ <code>SHUTDOWN_DELAY_MS=5000</code> ให้ทุกจุดอัปเดตตาม</p></li>
+          <li><span class="t">5 s</span><p><code>app.close()</code> ปิด HTTP server หลังจบ request ที่ค้าง แล้ว process exit</p></li>
+          <li><span class="t">30 s</span><p>ถ้ายังไม่ exit จะโดน SIGKILL ตาม <code>terminationGracePeriodSeconds: 30</code></p></li>
+        </ol>
+        <h3>Rollout และ rollback</h3>
+        <figure class="code">
+          <figcaption><span>terminal · ออก version ใหม่และย้อนกลับ</span><button class="copy" type="button" data-copy="rollout">คัดลอก</button></figcaption>
+<pre id="rollout"><code>make image TAG=0.2.0
+k -n $S set image deploy/nest-lab app=localhost:5001/nest-lab:0.2.0
+k -n $S rollout status deploy/nest-lab
+k -n $S rollout history deploy/nest-lab
+k -n $S rollout undo deploy/nest-lab                  <span class="c"># กลับ revision ก่อนหน้า</span>
+k -n $S rollout undo deploy/nest-lab --to-revision=2</code></pre>
+        </figure>
+      </section>
+
+      <section class="chapter" id="scale">
+        <header><span class="label">บทที่ 7</span><h2>Scale และทนต่อการพัง</h2></header>
+        <ul>
+          <li><strong>requests</strong> คือสิ่งที่ scheduler ใช้จอง node และ HPA ใช้คิด % CPU ส่วน <strong>limits</strong> คือเพดาน memory เกิน limit จะโดน OOMKilled</li>
+          <li><strong>HPA</strong> ปรับจำนวน replica ตาม CPU เฉลี่ยเทียบกับ request (lab ตั้งเป้า 70%)</li>
+          <li><strong>topologySpreadConstraints</strong> กระจาย pod ไปทุก zone เพื่อให้ AZ เดียวล่มแล้วยังเหลือ pod ใน zone อื่น</li>
+          <li><strong>PodDisruptionBudget</strong> จำกัดว่าตอน drain node หรือ upgrade node group ปิด pod ได้ทีละกี่ตัว</li>
+        </ul>
+        <h3>Timeline เมื่อ worker ทั้งเครื่องหาย (Lab 10)</h3>
+        <ol class="timeline">
+          <li><span class="t">t = 0</span><p><code>docker compose stop worker-1b</code> จำลอง AZ ล่ม</p></li>
+          <li><span class="t">~4 s</span><p>LB health check ถอด worker-1b (ดูได้ที่ <code>localhost:8404</code>)</p></li>
+          <li><span class="t">~40–50 s</span><p>node ขึ้น <code>NotReady</code> ช่วงนี้ Traefik ยังอาจส่ง request ไปหา pod บน node ที่ตาย จึงมี error บางส่วน</p></li>
+          <li><span class="t">+30 s</span><p>เกิน <code>tolerationSeconds: 30</code> (ค่า default จริงคือ 300) pod ถูก evict และสร้างใหม่ใน zone ที่เหลือ</p></li>
+          <li><span class="t">ภายหลัง</span><p>เปิด worker-1b กลับมา pod <strong>ไม่ย้ายกลับเอง</strong> ต้อง <code>rollout restart</code> หรือใช้ descheduler</p></li>
+        </ol>
+        <h3>ผลที่วัดได้จริงตอนทดสอบ lab นี้</h3>
+        <div class="results">
+          <div class="result"><span class="label">Rolling restart ขณะยิงต่อเนื่อง</span><strong>6,123 / 0</strong><p>request ทั้งหมด / error ระหว่าง <code>rollout restart</code> 45 วินาที</p></div>
+          <div class="result"><span class="label">HPA ภายใต้โหลด /chaos/cpu</span><strong>2 → 6 pod</strong><p>CPU พุ่งถึง 487% ของ request แล้ว scale ถึง max ใน 1 รอบ</p></div>
+          <div class="result"><span class="label">ConfigMap แบบไฟล์</span><strong>~36 วินาที</strong><p>จาก <code>kubectl patch</code> จนค่าใหม่โผล่ใน <code>/config</code> โดยไม่ restart</p></div>
+          <div class="result"><span class="label">AZ ล่มระหว่างยิง request</span><strong>8 / 24 fail</strong><p>error เกิดในช่วงก่อน node ถูก mark NotReady ตามที่อธิบายข้างบน</p></div>
+        </div>
+      </section>
+
+      <section class="chapter" id="security">
+        <header><span class="label">บทที่ 8</span><h2>Security baseline ที่ production ควรมี</h2></header>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>ตั้งค่า</th><th>ป้องกันอะไร</th><th>ทดสอบใน lab</th></tr></thead>
+            <tbody>
+              <tr><td><code>runAsNonRoot</code>, <code>USER 1000</code></td><td>หลุดจาก container แล้วไม่ได้ root</td><td><code>exec ... -- id</code></td></tr>
+              <tr><td><code>readOnlyRootFilesystem</code></td><td>attacker เขียนไฟล์ลงใน image ไม่ได้</td><td><code>touch /app/x</code> ไม่ผ่าน</td></tr>
+              <tr><td>Pod Security <code>restricted</code></td><td>namespace ปฏิเสธ pod ที่ตั้งค่าหลวม</td><td><code>kubectl run</code> แบบไม่มี securityContext จะไม่ผ่าน</td></tr>
+              <tr><td>NetworkPolicy default-deny</td><td>pod อื่นเรียก app ตรง ๆ ไม่ได้</td><td>ถอด label <code>nest-lab-client</code> แล้วถูกปฏิเสธ</td></tr>
+              <tr><td>RBAC</td><td>ให้สิทธิ์เท่าที่จำเป็น</td><td><code>auth can-i get secrets --as=...</code></td></tr>
+              <tr><td><code>automountServiceAccountToken: false</code></td><td>app ที่ไม่คุยกับ API server ไม่ต้องถือ token</td><td><code>ls /var/run/secrets</code> ไม่มี</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="aws">
+        <header><span class="label">บทที่ 9</span><h2>จาก lab ไป AWS</h2></header>
+        <p>YAML ส่วนใหญ่ใช้กับ EKS ได้ตรง ๆ สิ่งที่ต้องเปลี่ยนคือ infrastructure รอบ cluster</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>ใน lab</th><th>บน AWS</th><th>ต้องแก้ manifest?</th></tr></thead>
+            <tbody>
+              <tr><td>k3s server ใน container</td><td>EKS control plane</td><td>ไม่</td></tr>
+              <tr><td>worker 3 ตัว + label zone</td><td>Managed node group / Karpenter 3 AZ</td><td>ไม่</td></tr>
+              <tr><td>HAProxy <code>lb</code></td><td>NLB หรือ ALB</td><td>ไม่</td></tr>
+              <tr><td>Traefik Ingress</td><td>AWS Load Balancer Controller</td><td>ใช่: <code>ingressClassName: alb</code> + annotation</td></tr>
+              <tr><td>registry <code>localhost:5001</code></td><td>ECR</td><td>ใช่: <code>images.newName</code> ใน overlay</td></tr>
+              <tr><td><code>make secret</code></td><td>Secrets Manager + External Secrets</td><td>ใช่: เพิ่ม <code>ExternalSecret</code></td></tr>
+              <tr><td>ServiceAccount ธรรมดา</td><td>IRSA / EKS Pod Identity</td><td>ใช่: annotation role-arn</td></tr>
+              <tr><td>kube-router NetworkPolicy</td><td>VPC CNI network policy</td><td>ไม่ (เปิด feature ใน add-on)</td></tr>
+              <tr><td><code>make deploy</code></td><td>Argo CD / Flux อ่าน overlay จาก git</td><td>ไม่</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="debug">
+        <header><span class="label">บทที่ 10</span><h2>Debug ตามสถานะ pod</h2></header>
+        <p>สอนให้ผู้เรียนเริ่มจากสถานะ แล้วรันคำสั่งแรกให้ถูกตัว เกือบทุกกรณีคำตอบอยู่ใน <code>describe</code> หรือ <code>logs --previous</code></p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>สถานะ</th><th>แปลว่า</th><th>คำสั่งแรก</th></tr></thead>
+            <tbody>
+              <tr><td><span class="status status--warn">Pending</span></td><td>scheduler หา node ไม่ได้: resource ไม่พอ, taint, affinity</td><td><code>describe pod</code> ดู Events</td></tr>
+              <tr><td><span class="status status--bad">ImagePullBackOff</span></td><td>ชื่อหรือ tag ของ image ผิด หรือไม่มีสิทธิ์ดึง</td><td><code>describe pod</code> · <code>curl localhost:5001/v2/nest-lab/tags/list</code></td></tr>
+              <tr><td><span class="status status--bad">CrashLoopBackOff</span></td><td>process ตายซ้ำ ส่วนใหญ่เพราะ config ผิด</td><td><code>logs &lt;pod&gt; --previous</code></td></tr>
+              <tr><td><span class="status status--bad">CreateContainerConfigError</span></td><td>อ้าง ConfigMap หรือ Secret ที่ไม่มีอยู่</td><td><code>describe pod</code></td></tr>
+              <tr><td><span class="status status--warn">Running 0/1</span></td><td>readiness fail จึงไม่ได้รับ traffic</td><td><code>describe pod</code> · <code>get endpointslices</code></td></tr>
+              <tr><td><span class="status status--bad">OOMKilled</span></td><td>ใช้ memory เกิน limit</td><td><code>describe pod</code> ดู Last State · <code>top pod</code></td></tr>
+              <tr><td><span class="status status--warn">Terminating ค้าง</span></td><td>node ตาย หรือมี finalizer ค้าง</td><td><code>get pod -o yaml</code> · <code>get nodes</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="chapter" id="quiz">
+        <header><span class="label">บทที่ 11</span><h2>คำถามทบทวน</h2></header>
+        <p>ใช้ท้ายแต่ละช่วงหรือปิด workshop กดที่คำถามเพื่อดูคำตอบ</p>
+        <div class="quiz">
+          <details><summary>แก้ ConfigMap ที่ใช้ envFrom แล้ว ทำไม app ยังเห็นค่าเดิม</summary><p>env ถูกอ่านครั้งเดียวตอน container start ต้อง <code>rollout restart</code> หรือใช้ configMapGenerator ที่เปลี่ยนชื่อตาม hash เพื่อให้ rollout อัตโนมัติ</p></details>
+          <details><summary>readiness กับ liveness ต่างกันอย่างไร</summary><p>readiness fail จะถอด pod ออกจาก Service แต่ไม่ restart ส่วน liveness fail จะ restart container จึงห้ามให้ liveness ขึ้นกับระบบภายนอกอย่าง database</p></details>
+          <details><summary>ทำไม app ต้องรอ SHUTDOWN_DELAY_MS ก่อนปิด</summary><p>Kubernetes ส่ง SIGTERM พร้อมกับเริ่มถอด endpoint ไม่ได้ถอดก่อน ถ้าปิดทันที request ที่ load balancer ยังส่งมาจะ error</p></details>
+          <details><summary>Pod อยู่ Pending นาน ดูอะไรก่อน</summary><p><code>kubectl describe pod</code> ดู Events ล่างสุด มักเป็น <code>Insufficient cpu</code>, taint ที่ไม่ได้ tolerate หรือ PVC ที่ยัง bind ไม่ได้</p></details>
+          <details><summary>Secret ปลอดภัยเพราะเป็น base64 ใช่ไหม</summary><p>ไม่ใช่ base64 ถอดได้ทันที ความปลอดภัยมาจาก RBAC, encryption at rest (KMS บน EKS) และการไม่ commit ค่าจริงลง git</p></details>
+          <details><summary>HPA คิด % CPU จากอะไร</summary><p>จาก <code>resources.requests.cpu</code> ไม่ใช่ limit ใน lab request คือ 100m ถ้า pod ใช้ 70m ถือว่า 70%</p></details>
+          <details><summary>Node ตายแล้ว pod ย้ายไปเมื่อไหร่</summary><p>หลัง node ถูก mark NotReady (~40–50 วินาที) แล้วรออีก <code>tolerationSeconds</code> ซึ่ง default คือ 300 วินาที ใน lab ตั้งไว้ 30</p></details>
+          <details><summary>maxUnavailable: 0 ช่วยอะไรตอน config พัง</summary><p>pod เก่าจะไม่ถูกปิดจนกว่า pod ใหม่จะ ready ถ้าตัวใหม่ crash rollout จะค้างแต่ระบบยังให้บริการจาก pod เก่าได้ครบ</p></details>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <span>Kubernetes 101 · k8s-nest-lab · ใช้คู่กับ README.md และ LAB.md ในโปรเจกต์</span>
+    <span class="mono">k3s v1.35.9 · NestJS 12</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Copy buttons: clipboard inside the click handler, select-text fallback when refused.
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var src = document.getElementById(btn.dataset.copy);
+      if (!src) return;
+      var text = src.innerText;
+      var done = function () {
+        btn.textContent = 'คัดลอกแล้ว';
+        btn.dataset.state = 'done';
+        setTimeout(function () { btn.textContent = 'คัดลอก'; delete btn.dataset.state; }, 1600);
+      };
+      var fallback = function () {
+        var range = document.createRange();
+        range.selectNodeContents(src);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        btn.textContent = 'กด ⌘C / Ctrl+C';
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+
+  // TOC: collapsed by default on narrow screens, current chapter highlighted.
+  var details = document.getElementById('toc-details');
+  if (details && window.matchMedia('(max-width: 999px)').matches) details.open = false;
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  if (!('IntersectionObserver' in window)) return;
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      links.forEach(function (a) { a.removeAttribute('aria-current'); });
+      var link = byId[entry.target.id];
+      if (link) link.setAttribute('aria-current', 'true');
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('.chapter').forEach(function (s) { observer.observe(s); });
+})();
+</script>

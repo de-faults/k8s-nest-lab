@@ -1,0 +1,10 @@
+# Limits voluntary disruption (kubectl drain, node group upgrades) to one pod at a time.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nest-lab
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nest-lab

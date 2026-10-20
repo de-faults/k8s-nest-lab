@@ -1,0 +1,26 @@
+# Lab 3.7: staging + a hash-suffixed ConfigMap. Changing a literal renames the
+# ConfigMap (nest-lab-extra-<hash>), which changes the pod template, which
+# triggers a rollout — and `kubectl rollout undo` brings the old config back.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../overlays/staging
+
+configMapGenerator:
+  - name: nest-lab-extra
+    namespace: nest-lab-staging
+    literals:
+      - GREETING=Hello from configMapGenerator v1
+
+patches:
+  # Appended after nest-lab-env, so its keys win on conflict.
+  - target:
+      kind: Deployment
+      name: nest-lab
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          configMapRef:
+            name: nest-lab-extra

@@ -1,0 +1,16 @@
+# Mounted as a file at /etc/nest-lab/app-config.json. The kubelet refreshes
+# the file in place (~up to 1 min), and the app re-reads it on every request.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nest-lab-files
+data:
+  app-config.json: |
+    {
+      "featureFlags": {
+        "newCheckout": false,
+        "darkMode": true
+      },
+      "rateLimitPerMinute": 60,
+      "banner": "base config"
+    }

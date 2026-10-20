@@ -1,0 +1,855 @@
+<title>K8s Junior Workshop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=Anuphan:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4
+ * Layout: field-manual — timed mission strip on top, then one mission per band:
+ * meta rail (time, goal, idea) beside a checklist of commands with expected output.
+ * Colour anchor = pod status vocabulary: Running green (accent), Pending amber, CrashLoop red. */
+:root {
+  --bg: oklch(0.975 0.006 200);
+  --surface: oklch(0.995 0.003 200);
+  --ink: oklch(0.24 0.025 235);
+  --muted: oklch(0.47 0.02 230);
+  --line: oklch(0.88 0.012 215);
+  --accent: oklch(0.5 0.12 165);
+  --accent-soft: oklch(0.93 0.04 165);
+  --on-accent: oklch(0.985 0.01 165);
+  --pending: oklch(0.62 0.13 70);
+  --pending-soft: oklch(0.95 0.05 85);
+  --crash: oklch(0.54 0.17 27);
+  --crash-soft: oklch(0.95 0.03 27);
+  --code-bg: oklch(0.24 0.025 235);
+  --code-fg: oklch(0.93 0.01 200);
+  --code-dim: oklch(0.7 0.02 220);
+  --focus: oklch(0.6 0.14 250);
+
+  --font-display: "Bai Jamjuree", "Anuphan", system-ui, sans-serif;
+  --font-body: "Anuphan", "Noto Sans Thai", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --step--1: 0.875rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.5rem;
+  --step-3: clamp(1.9rem, 1.3rem + 2.6vw, 3rem);
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.19 0.02 235);
+    --surface: oklch(0.23 0.022 235);
+    --ink: oklch(0.93 0.01 210);
+    --muted: oklch(0.72 0.02 220);
+    --line: oklch(0.34 0.02 235);
+    --accent: oklch(0.76 0.13 165);
+    --accent-soft: oklch(0.3 0.05 165);
+    --on-accent: oklch(0.2 0.03 165);
+    --pending: oklch(0.8 0.13 80);
+    --pending-soft: oklch(0.3 0.05 80);
+    --crash: oklch(0.72 0.15 27);
+    --crash-soft: oklch(0.3 0.05 27);
+    --code-bg: oklch(0.15 0.02 235);
+    --code-fg: oklch(0.93 0.01 200);
+    --code-dim: oklch(0.68 0.02 220);
+    --focus: oklch(0.75 0.12 250);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: oklch(0.19 0.02 235);
+  --surface: oklch(0.23 0.022 235);
+  --ink: oklch(0.93 0.01 210);
+  --muted: oklch(0.72 0.02 220);
+  --line: oklch(0.34 0.02 235);
+  --accent: oklch(0.76 0.13 165);
+  --accent-soft: oklch(0.3 0.05 165);
+  --on-accent: oklch(0.2 0.03 165);
+  --pending: oklch(0.8 0.13 80);
+  --pending-soft: oklch(0.3 0.05 80);
+  --crash: oklch(0.72 0.15 27);
+  --crash-soft: oklch(0.3 0.05 27);
+  --code-bg: oklch(0.15 0.02 235);
+  --code-fg: oklch(0.93 0.01 200);
+  --code-dim: oklch(0.68 0.02 220);
+  --focus: oklch(0.75 0.12 250);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.7;
+}
+.wrap {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-style: normal;
+  line-height: 1.25;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  margin: 0;
+}
+h1 { font-size: var(--step-3); font-weight: 700; }
+h2 { font-size: var(--step-2); font-weight: 700; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+a { color: var(--accent); text-underline-offset: 3px; }
+code { font-family: var(--font-mono); font-size: 0.9em; background: var(--accent-soft); padding: 0.05em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* header */
+header.top { padding-block: 48px 32px; display: grid; gap: 20px; }
+header.top .lede { font-size: var(--step-1); color: var(--muted); max-width: 60ch; }
+.outcomes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+.outcomes li { list-style: none; border-top: 2px solid var(--accent); padding-top: 10px; min-width: 0; }
+.outcomes ul { margin: 0; padding: 0; display: contents; }
+
+/* timeline: segment width = minutes */
+.timeline { display: flex; gap: 3px; margin-top: 8px; }
+.timeline a {
+  display: grid; gap: 2px;
+  min-width: 0;
+  padding: 10px 10px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: var(--step--1);
+  line-height: 1.35;
+}
+.timeline a:hover { border-color: var(--accent); }
+.timeline .min { font-family: var(--font-mono); color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
+.timeline .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timeline .brk { display: grid; gap: 2px; min-width: 0; padding: 10px 10px 8px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); font-size: var(--step--1); line-height: 1.35; }
+.timeline a.done { background: var(--accent-soft); border-color: var(--accent); }
+.total { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: var(--step--1); color: var(--muted); }
+.total button {
+  font: inherit; color: var(--muted); background: none; border: 1px solid var(--line);
+  border-radius: 6px; padding: 2px 10px; cursor: pointer;
+}
+.total button:hover { color: var(--ink); border-color: var(--ink); }
+
+/* sections */
+section.band { border-top: 1px solid var(--line); padding-block: 40px; }
+.mission { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start; }
+.rail { display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.rail .num { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.rail .goal { color: var(--muted); }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chip {
+  font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500;
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  background: var(--accent-soft); color: var(--ink);
+}
+.chip.run { background: var(--accent); color: var(--on-accent); }
+.chip.pend { background: var(--pending-soft); color: var(--ink); border: 1px solid var(--pending); }
+.chip.crash { background: var(--crash-soft); color: var(--ink); border: 1px solid var(--crash); }
+.progress { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+
+.idea { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 6px; font-size: var(--step--1); }
+
+/* steps */
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; counter-reset: step; min-width: 0; }
+ol.steps > li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; counter-increment: step; }
+.check {
+  appearance: none; width: 22px; height: 22px; margin: 3px 0 0;
+  border: 2px solid var(--line); border-radius: 6px; background: var(--surface);
+  cursor: pointer; display: grid; place-content: center;
+}
+.check::before { content: counter(step); font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.check:hover { border-color: var(--accent); }
+.check:checked { background: var(--accent); border-color: var(--accent); }
+.check:checked::before { content: "✓"; color: var(--on-accent); font-size: 0.85rem; }
+.body { display: grid; gap: 10px; min-width: 0; }
+.body > strong { font-weight: 600; }
+li.is-done .body > strong { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--accent); }
+
+.code { position: relative; min-width: 0; }
+pre {
+  margin: 0; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6;
+  border-radius: 8px; padding: 12px 14px;
+}
+pre.cmd { background: var(--code-bg); color: var(--code-fg); padding-right: 64px; }
+pre.cmd .c { color: var(--code-dim); }
+pre.out { background: var(--surface); color: var(--muted); border: 1px dashed var(--line); }
+.out-wrap { display: grid; gap: 4px; }
+.copy {
+  position: absolute; top: 8px; right: 8px;
+  font: 500 0.75rem var(--font-mono);
+  color: var(--code-fg); background: transparent;
+  border: 1px solid var(--code-dim); border-radius: 6px; padding: 2px 8px; cursor: pointer;
+}
+.copy:hover { border-color: var(--code-fg); }
+.copy.ok { border-color: var(--accent); color: var(--accent); }
+
+.note { border-left: 3px solid var(--pending); background: var(--pending-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: var(--step--1); }
+.note b { font-family: var(--font-display); }
+section.break { padding-block: 20px; color: var(--muted); }
+.why { font-size: var(--step--1); color: var(--muted); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-display); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+
+/* concepts */
+.four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.four div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.four h3 { font-size: var(--step-0); }
+.four p { font-size: var(--step--1); color: var(--muted); }
+.path { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--font-mono); font-size: 0.85rem; }
+.path span { padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.path i { font-style: normal; color: var(--muted); }
+
+.loop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: lp; }
+.loop div { border-top: 2px solid var(--accent); padding-top: 10px; display: grid; gap: 6px; min-width: 0; counter-increment: lp; }
+.loop div::before { content: counter(lp); font-family: var(--font-mono); color: var(--accent); font-size: var(--step--1); }
+
+details.q { border-bottom: 1px solid var(--line); padding-block: 12px; }
+details.q summary { cursor: pointer; font-weight: 600; }
+details.q p { margin-top: 8px; color: var(--muted); }
+
+.stack { display: grid; gap: 20px; }
+footer { border-top: 1px solid var(--line); padding-block: 24px 48px; color: var(--muted); font-size: var(--step--1); }
+
+@media (max-width: 860px) {
+  .mission { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .rail { position: static; }
+  .four, .loop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .timeline .nm { display: none; }
+}
+@media (max-width: 560px) {
+  .outcomes, .four, .loop { grid-template-columns: minmax(0, 1fr); }
+  .timeline a { padding: 8px 4px; text-align: center; }
+  .timeline .min { font-size: 0.68rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="label">Workshop · ~2 ชั่วโมง 20 นาที รวมพัก · สำหรับ junior</span>
+    <h1>Kubernetes ฉบับลงมือ ตั้งแต่ติดตั้งถึง deploy</h1>
+    <p class="lede">เริ่มจากเครื่องเปล่า ลงเครื่องมือ สร้าง cluster จำลอง EKS บนเครื่องตัวเอง build image แล้ว deploy ขึ้นเอง จากนั้นส่อง cluster, ลองทำ pod พังแล้วดูมันซ่อมตัวเอง, แก้ ConfigMap, ออก version ใหม่โดย user ไม่เห็น error และหาสาเหตุเวลา pod พัง</p>
+    <div>
+      <span class="label">จบแล้วทำได้</span>
+      <ul class="outcomes">
+        <li>ตั้ง cluster, build image และ deploy app ขึ้น k8s ได้เอง</li>
+        <li>อ่าน <code>get</code> / <code>describe</code> / <code>logs</code> แล้วบอกได้ว่า pod เป็นอะไร</li>
+        <li>อธิบายได้ว่าแก้ ConfigMap แล้วทำไมบางค่าเปลี่ยนเลย บางค่าต้อง restart</li>
+        <li>รู้ว่า k8s ซ่อมตัวเองยังไง และ deploy ยังไงไม่ให้ระบบล่ม</li>
+      </ul>
+    </div>
+    <nav class="timeline" aria-label="กำหนดการ">
+      <a href="#m0" data-m="m0" style="flex:10"><span class="min">10′</span><span class="nm">แนวคิด</span></a>
+      <a href="#s1" data-m="s1" style="flex:10"><span class="min">10′</span><span class="nm">ติดตั้ง</span></a>
+      <a href="#s2" data-m="s2" style="flex:10"><span class="min">10′</span><span class="nm">cluster</span></a>
+      <a href="#s3" data-m="s3" style="flex:10"><span class="min">10′</span><span class="nm">image</span></a>
+      <a href="#s4" data-m="s4" style="flex:15"><span class="min">15′</span><span class="nm">deploy</span></a>
+      <span class="brk" style="flex:10"><span class="min">10′</span><span class="nm">พัก</span></span>
+      <a href="#m1" data-m="m1" style="flex:10"><span class="min">10′</span><span class="nm">ส่อง cluster</span></a>
+      <a href="#m2" data-m="m2" style="flex:15"><span class="min">15′</span><span class="nm">พังแล้วซ่อม</span></a>
+      <a href="#m3" data-m="m3" style="flex:20"><span class="min">20′</span><span class="nm">ConfigMap</span></a>
+      <a href="#m4" data-m="m4" style="flex:15"><span class="min">15′</span><span class="nm">Deploy ไม่ล่ม</span></a>
+      <a href="#m5" data-m="m5" style="flex:10"><span class="min">10′</span><span class="nm">หาสาเหตุ</span></a>
+      <a href="#wrap" style="flex:5"><span class="min">5′</span><span class="nm">สรุป</span></a>
+    </nav>
+    <div class="total">
+      <span id="total">ทำไปแล้ว 0 ขั้น</span>
+      <button type="button" id="reset">ล้างเครื่องหมายถูก</button>
+    </div>
+  </header>
+
+  <!-- M0 -->
+  <section class="band" id="m0">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 0 · 10 นาที</span>
+        <h2>4 คำที่ต้องรู้</h2>
+        <p class="goal">ยังไม่พิมพ์อะไร คุยให้เห็นภาพก่อน</p>
+        <div class="idea"><span class="label">แนวคิดหลัก</span><p>เราบอก k8s ว่า <b>อยากได้อะไร</b> (desired state) แล้ว k8s เทียบกับของจริงและแก้ให้ตรงอยู่ตลอดเวลา เราไม่ได้สั่งทีละขั้น</p></div>
+      </div>
+      <div class="stack">
+        <div class="four">
+          <div><h3>Pod</h3><p>กล่องที่ app รันอยู่จริง ตายได้ ถูกแทนที่ได้ ชื่อเปลี่ยนทุกครั้งที่เกิดใหม่</p></div>
+          <div><h3>Deployment</h3><p>ใบสั่งว่า "อยากได้ pod แบบนี้ 2 ตัว" k8s คอยดูแลให้มีครบเสมอ</p></div>
+          <div><h3>Service</h3><p>ชื่อและ IP ที่คงที่อยู่หน้า pod หลายตัว คอยกระจาย request ให้</p></div>
+          <div><h3>ConfigMap</h3><p>ค่า config ที่แยกจาก image เปลี่ยน config ได้โดยไม่ต้อง build ใหม่</p></div>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="label">จากโค้ดถึง user</span>
+          <div class="path"><span>โค้ด</span><i>→</i><span>docker build</span><i>→</i><span>registry (เหมือน ECR)</span><i>→</i><span>kubectl apply</span><i>→</i><span>Pod</span></div>
+          <div class="path"><span>curl</span><i>→</i><span>LB (เหมือน NLB)</span><i>→</i><span>Ingress</span><i>→</i><span>Service</span><i>→</i><span>Pod</span><i>←</i><span>ConfigMap</span></div>
+        </div>
+        <div class="note"><b>ผู้สอน:</b> วาด 2 เส้นนี้บนกระดาน ภารกิจ 1–4 เดินตามเส้นบน ภารกิจ 5–9 อยู่บนเส้นล่าง บอกน้องว่า worker 3 ตัวคือ 3 AZ ของ ap-southeast-1 เหมือน EKS ที่บริษัทใช้</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S1 -->
+  <section class="band" id="s1">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 1 · 10 นาที</span>
+        <h2>ติดตั้งเครื่องมือ</h2>
+        <p class="goal">มีของครบ 5 อย่าง: Docker, kubectl, jq, make, curl</p>
+        <div class="meta"><span class="progress" data-progress="s1"></span></div>
+        <div class="note"><b>ผู้สอน:</b> ถ้าเน็ตในห้องช้า ให้น้องทำภารกิจนี้มาก่อน และรัน <code>docker compose pull</code> กับ <code>docker pull node:24-alpine</code> ในโฟลเดอร์โปรเจกต์ไว้ที่บ้าน ครั้งแรกต้องโหลด image หลายตัว</div>
+      </div>
+      <ol class="steps" data-mission="s1">
+        <li><input class="check" type="checkbox" id="s1-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ลง Docker Desktop แล้วให้ RAM พอ</strong>
+          <p>โหลดจาก docker.com แล้วไปที่ Settings → Resources ตั้ง Memory อย่างน้อย 4 GB (cluster มี 4 node รันพร้อมกัน)</p>
+          <div class="code"><pre class="cmd">docker version
+docker compose version</pre></div>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s1-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>ลง kubectl และ jq</strong>
+          <div class="code"><pre class="cmd">brew install kubectl jq
+kubectl version --client
+jq --version</pre></div>
+          <p class="why">macOS มี <code>make</code> และ <code>curl</code> อยู่แล้ว ถ้าพิมพ์ <code>make</code> แล้วไม่เจอ ให้รัน <code>xcode-select --install</code>. Windows ใช้ WSL2 + Docker Desktop แล้วทำใน terminal ของ WSL</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s1-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>เข้าโฟลเดอร์โปรเจกต์</strong>
+          <p>โฟลเดอร์ <code>k8s-nest-lab</code> ที่ผู้สอนแจก ข้างในมีโค้ด NestJS, Dockerfile, ไฟล์ cluster และ manifest ของ k8s</p>
+          <div class="code"><pre class="cmd">cd k8s-nest-lab
+ls</pre></div>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- S2 -->
+  <section class="band" id="s2">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 2 · 10 นาที</span>
+        <h2>สร้าง cluster</h2>
+        <p class="goal">ได้ k8s 4 node (control-plane 1 + worker 3) บนเครื่องตัวเอง</p>
+        <div class="meta"><span class="progress" data-progress="s2"></span></div>
+        <div class="idea"><span class="label">ทางลัด</span><p><code>make up</code> ทำขั้น 1 และรอจนขั้น 3–4 เสร็จให้ในคำสั่งเดียว วันนี้พิมพ์เองเพื่อให้เห็นว่ามีอะไรเกิดขึ้น</p></div>
+      </div>
+      <ol class="steps" data-mission="s2">
+        <li><input class="check" type="checkbox" id="s2-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>เปิด cluster</strong>
+          <div class="code"><pre class="cmd">mkdir -p .kube
+docker compose up -d
+docker compose ps</pre></div>
+          <p class="why">ได้ container 6 ตัว: <code>control-plane</code>, <code>worker-1a/1b/1c</code>, <code>lb</code> (ทำหน้าที่เหมือน NLB) และ <code>registry</code> (เหมือน ECR) ข้างในแต่ละ node รัน k3s ซึ่งเป็น Kubernetes จริงที่ผ่าน certification ของ CNCF</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s2-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>ตั้งค่า terminal (ทำทั้ง 2 จอ)</strong>
+          <div class="code"><pre class="cmd">export KUBECONFIG=$PWD/.kube/kubeconfig.yaml
+alias k=kubectl
+S=nest-lab-staging
+STG=http://staging.nest-lab.localhost:8080</pre></div>
+          <p class="why"><code>KUBECONFIG</code> บอก kubectl ว่าคุยกับ cluster ไหน ไฟล์นี้อยู่ในโปรเจกต์ จึงไม่ไปยุ่งกับ <code>~/.kube/config</code> ที่อาจชี้ไป cluster ของบริษัท</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s2-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>รอ node พร้อม</strong>
+          <div class="code"><pre class="cmd">k get nodes -w</pre></div>
+          <p class="why">รอจน 4 node เป็น <code>Ready</code> (ประมาณ 30–60 วินาที) แล้วกด Ctrl-C ถ้าเจอ <code>connection refused</code> หรือหาไฟล์ kubeconfig ไม่เจอ แปลว่า control-plane ยัง start ไม่เสร็จ รอ 10–20 วินาทีแล้วลองใหม่</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s2-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>ดู system pod</strong>
+          <div class="code"><pre class="cmd">k -n kube-system get pod</pre></div>
+          <p class="why">รอ <code>coredns</code> (DNS ใน cluster), <code>traefik</code> (Ingress) และ <code>metrics-server</code> (ใช้กับ HPA) เป็น Running. pod ชื่อ <code>helm-install-*</code> ขึ้น <code>Completed</code> เป็นเรื่องปกติ</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- S3 -->
+  <section class="band" id="s3">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 3 · 10 นาที</span>
+        <h2>Build และ push image</h2>
+        <p class="goal">แปลงโค้ดเป็น image แล้วเอาขึ้น registry ให้ cluster ดึงไปใช้ได้</p>
+        <div class="meta"><span class="progress" data-progress="s3"></span></div>
+        <div class="idea"><span class="label">ทางลัด</span><p><code>make image</code> = ขั้น 2 + 3</p></div>
+      </div>
+      <ol class="steps" data-mission="s3">
+        <li><input class="check" type="checkbox" id="s3-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>อ่าน Dockerfile ด้วยกัน</strong>
+          <div class="code"><pre class="cmd">cat Dockerfile</pre></div>
+          <p class="why">ชี้ 3 จุด: แยก 2 stage (stage แรก build TypeScript, stage หลังเก็บแค่ <code>dist</code> กับ dependency ที่ใช้ตอนรัน image จึงเล็ก), <code>USER 1000:1000</code> ไม่รันเป็น root และ <code>APP_VERSION</code> ที่ฝัง version ไว้ใน image</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s3-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>build</strong>
+          <div class="code"><pre class="cmd">docker build --build-arg APP_VERSION=0.1.0 -t localhost:5001/nest-lab:0.1.0 .
+docker images localhost:5001/nest-lab</pre></div>
+          <p class="why">ครั้งแรกนานหน่อยเพราะต้อง <code>npm ci</code> ชื่อ image ขึ้นต้นด้วย <code>localhost:5001/</code> เพราะเป็นที่อยู่ของ registry ใน lab บน AWS จะเป็น <code>&lt;account&gt;.dkr.ecr.ap-southeast-1.amazonaws.com/</code></p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s3-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>push แล้วเช็กว่าขึ้นจริง</strong>
+          <div class="code"><pre class="cmd">docker push localhost:5001/nest-lab:0.1.0
+curl -s localhost:5001/v2/nest-lab/tags/list</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">{"name":"nest-lab","tags":["0.1.0"]}</pre></div>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- S4 -->
+  <section class="band" id="s4">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 4 · 15 นาที</span>
+        <h2>Deploy ขึ้น k8s</h2>
+        <p class="goal">apply manifest แล้วเรียก app ได้ผ่าน LB</p>
+        <div class="meta"><span class="chip crash">CreateContainerConfigError</span><span class="progress" data-progress="s4"></span></div>
+        <div class="idea"><span class="label">ทางลัด</span><p><code>make deploy</code> สร้าง Secret ก่อนแล้วค่อย apply จึงไม่เห็น error ในขั้น 3 วันนี้เราจะลืมสร้าง Secret โดยตั้งใจ</p></div>
+      </div>
+      <ol class="steps" data-mission="s4">
+        <li><input class="check" type="checkbox" id="s4-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ดูว่าจะ deploy อะไรบ้าง</strong>
+          <div class="code"><pre class="cmd">ls k8s/base k8s/overlays/staging
+k kustomize k8s/overlays/staging | grep '^kind:'</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">kind: Namespace
+kind: ServiceAccount
+kind: ConfigMap
+kind: ConfigMap
+kind: Service
+kind: Deployment
+kind: PodDisruptionBudget
+kind: HorizontalPodAutoscaler
+kind: Ingress
+kind: NetworkPolicy
+kind: NetworkPolicy</pre></div>
+          <p class="why"><code>base</code> คือของที่เหมือนกันทุก environment ส่วน <code>overlays/staging</code> แก้เฉพาะที่ต่าง เช่น namespace, จำนวน replica, ค่า config. production ใช้ base เดียวกันแต่คนละ overlay</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s4-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>apply</strong>
+          <div class="code"><pre class="cmd">k apply -k k8s/overlays/staging</pre></div>
+          <p class="why">จะเห็น <code>created</code> 11 บรรทัด ถ้ารันซ้ำจะขึ้น <code>unchanged</code> เพราะ apply บอกแค่ว่าอยากได้อะไร ไม่ได้สั่งสร้างใหม่</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s4-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>ดู pod แล้วหาว่าทำไมไม่ขึ้น</strong>
+          <div class="code"><pre class="cmd">k -n $S get pod
+k -n $S get events --field-selector reason=Failed</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">nest-lab-xxxx   0/1   CreateContainerConfigError
+...  Error: secret "nest-lab-secret" not found</pre></div>
+          <p class="why">Deployment อ้างถึง Secret ชื่อ <code>nest-lab-secret</code> ที่ยังไม่มี เราไม่ใส่ Secret ไว้ใน manifest เพราะ manifest อยู่ใน git</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s4-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>สร้าง Secret แล้วดู pod ขึ้นเอง</strong>
+          <div class="code"><pre class="cmd">k -n $S create secret generic nest-lab-secret --from-literal=API_KEY=lab-staging-api-key-change-me
+k -n $S get pod -w</pre></div>
+          <p class="why">ไม่ต้อง apply ใหม่ kubelet ลองซ้ำเรื่อย ๆ พอเจอ Secret ก็ start ได้เอง (ตอนทดสอบ lab นี้ใช้ไม่ถึง 30 วินาที) บน EKS จริงเก็บ Secret ใน AWS Secrets Manager แล้วใช้ External Secrets Operator สร้าง Secret ให้</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="s4-5" aria-label="ขั้นที่ 5"><div class="body">
+          <strong>เรียก app ผ่าน LB</strong>
+          <div class="code"><pre class="cmd">k -n $S rollout status deploy/nest-lab
+curl -s $STG/ | jq</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">"env": "staging",
+"message": "Hello from STAGING",</pre></div>
+          <p class="why"><code>*.localhost</code> ชี้มาที่เครื่องตัวเองอยู่แล้ว ไม่ต้องแก้ <code>/etc/hosts</code></p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band break" aria-label="พัก">
+    <p><span class="label">พัก 10 นาที</span> ใครยังไม่ถึงภารกิจ 4 ให้ใช้ช่วงนี้ตามให้ทัน หรือรัน <code>make up &amp;&amp; make image &amp;&amp; make deploy</code> แล้วตั้งค่า terminal ตามภารกิจ 2 ขั้น 2. เครื่องไหน sleep ไปแล้วเจอ <code>Unauthorized</code> หรือ rollout ค้าง ให้รัน <code>make stop &amp;&amp; make start</code></p>
+  </section>
+
+  <!-- M1 -->
+  <section class="band" id="m1">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 5 · 10 นาที</span>
+        <h2>ส่อง cluster</h2>
+        <p class="goal">รู้ว่ามี node อะไร app อยู่ตรงไหน และเรียก app ได้</p>
+        <div class="meta"><span class="chip run">Running</span><span class="progress" data-progress="m1"></span></div>
+      </div>
+      <ol class="steps" data-mission="m1">
+        <li><input class="check" type="checkbox" id="m1-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ดู node และ zone</strong>
+          <div class="code"><pre class="cmd">k get nodes -L topology.kubernetes.io/zone</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">NAME            STATUS   ROLES           ZONE
+control-plane   Ready    control-plane
+worker-1a       Ready    &lt;none&gt;          ap-southeast-1a
+worker-1b       Ready    &lt;none&gt;          ap-southeast-1b
+worker-1c       Ready    &lt;none&gt;          ap-southeast-1c</pre></div>
+          <p class="why">control-plane ไม่รับ app เพราะติด taint เหมือน EKS ที่ AWS ดูแล control plane ให้ เราเห็นแค่ worker</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m1-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>ดู app ที่ deploy ไว้</strong>
+          <div class="code"><pre class="cmd">k -n $S get deploy,pod,svc -o wide</pre></div>
+          <p class="why">ดู 3 คอลัมน์: <code>READY 1/1</code>, <code>STATUS Running</code>, <code>NODE</code> (pod 2 ตัวควรอยู่คนละ node)</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m1-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>เรียก app แล้วดูว่า pod ไหนตอบ</strong>
+          <div class="code"><pre class="cmd">curl -s $STG/ | jq
+for i in 1 2 3 4 5 6; do curl -s $STG/ | jq -r .pod.name; done</pre></div>
+          <p class="why">ชื่อ pod สลับกันไปมา แปลว่า Service กระจาย request ให้ทุก pod</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m1-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>อ่านรายละเอียดของ Deployment</strong>
+          <div class="code"><pre class="cmd">k -n $S describe deploy nest-lab</pre></div>
+          <p class="why">ให้น้องหา 4 อย่าง: จำนวน replicas, image, บรรทัด Liveness/Readiness และ ConfigMap ที่ใช้ (Environment Variables from)</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m1-5" aria-label="ขั้นที่ 5"><div class="body">
+          <strong>อ่าน log</strong>
+          <div class="code"><pre class="cmd">k -n $S logs deploy/nest-lab --tail=5</pre></div>
+          <p class="why">log เป็น JSON บรรทัดละ event เพราะ production ส่ง log เข้า CloudWatch/Datadog ซึ่งอ่าน JSON ได้ง่าย</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- M2 -->
+  <section class="band" id="m2">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 6 · 15 นาที</span>
+        <h2>พังแล้วดูมันซ่อม</h2>
+        <p class="goal">เห็นกับตาว่า k8s ซ่อมตัวเองได้ 3 แบบ</p>
+        <div class="meta"><span class="chip pend">ContainerCreating</span><span class="progress" data-progress="m2"></span></div>
+        <div class="idea"><span class="label">จอ 2 เปิดค้างไว้</span><pre class="cmd" style="padding-right:14px">k -n $S get pod -w</pre></div>
+      </div>
+      <ol class="steps" data-mission="m2">
+        <li><input class="check" type="checkbox" id="m2-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ลบ pod ทิ้ง 1 ตัว</strong>
+          <div class="code"><pre class="cmd">k -n $S delete $(k -n $S get pod -l app.kubernetes.io/name=nest-lab -o name | head -1)</pre></div>
+          <p class="why">จอ 2 เห็น pod ชื่อใหม่ขึ้นมา ContainerCreating แล้วเป็น Running เพราะ Deployment อยากได้ 2 ตัว พอเหลือ 1 ก็สร้างเพิ่มให้</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m2-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>ทำให้ process ใน pod ตาย</strong>
+          <div class="code"><pre class="cmd">curl -s -X POST $STG/chaos/crash
+k -n $S get pod</pre></div>
+          <p class="why">รอบนี้ชื่อ pod <b>เดิม</b> แต่ RESTARTS เพิ่มเป็น 1 เพราะ container ตายแต่ pod ไม่หาย kubelet จึง restart container ใน pod เดิม</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m2-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>อ่าน log ของรอบที่ตาย</strong>
+          <div class="code"><pre class="cmd">k -n $S logs &lt;ชื่อ-pod-ที่-RESTARTS-1&gt; --previous --tail=3</pre></div>
+          <p class="why"><code>--previous</code> คือ log ของ container ตัวก่อนหน้าที่ตายไปแล้ว ถ้าไม่ใส่จะเห็นแค่ log ของตัวใหม่ที่ยังไม่มีอะไร</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m2-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>ทำให้ pod "ไม่พร้อม" แต่ยังไม่ตาย</strong>
+          <div class="code"><pre class="cmd">curl -s -X POST "$STG/chaos/ready?state=false"
+k -n $S get pod
+for i in 1 2 3 4 5 6; do curl -s $STG/ | jq -r .pod.name; done</pre></div>
+          <p class="why">pod นั้นเป็น <code>READY 0/1</code> แต่ไม่ถูก restart และไม่ได้รับ request อีกแล้ว ชื่อที่ตอบกลับมาเหลือชื่อเดียว</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m2-5" aria-label="ขั้นที่ 5"><div class="body">
+          <strong>เอากลับมาปกติ</strong>
+          <div class="code"><pre class="cmd">k -n $S rollout restart deploy/nest-lab
+k -n $S rollout status deploy/nest-lab</pre></div>
+        </div></li>
+        <li class="plain"><span></span><div class="body">
+          <div class="tbl"><table>
+            <thead><tr><th>probe ที่ fail</th><th>k8s ทำอะไร</th><th>ใช้ตอนไหน</th></tr></thead>
+            <tbody>
+              <tr><td>liveness</td><td>restart container</td><td>app ค้าง ตอบไม่ได้แล้ว</td></tr>
+              <tr><td>readiness</td><td>เอาออกจาก Service ชั่วคราว ไม่ restart</td><td>app ยังไม่พร้อม เช่นกำลัง start หรือ DB หลุดชั่วคราว</td></tr>
+            </tbody>
+          </table></div>
+          <p class="why"><code>/chaos/*</code> เปิดเฉพาะ staging ถ้าเรียกที่ production จะได้ 404</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- M3 -->
+  <section class="band" id="m3">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 7 · 20 นาที</span>
+        <h2>ConfigMap 2 แบบ</h2>
+        <p class="goal">แก้ config แล้วดูว่าแบบไหนเห็นผลทันที แบบไหนต้อง restart</p>
+        <div class="meta"><span class="progress" data-progress="m3"></span></div>
+        <div class="tbl"><table>
+          <thead><tr><th>ConfigMap</th><th>เข้า app ทาง</th><th>แก้แล้ว</th></tr></thead>
+          <tbody>
+            <tr><td><code>nest-lab-env</code></td><td>env var</td><td>ต้อง restart</td></tr>
+            <tr><td><code>nest-lab-files</code></td><td>ไฟล์</td><td>เปลี่ยนเองใน ~1 นาที</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <ol class="steps" data-mission="m3">
+        <li><input class="check" type="checkbox" id="m3-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ดู ConfigMap ทั้งสองตัว</strong>
+          <div class="code"><pre class="cmd">k -n $S get cm
+k -n $S get cm nest-lab-env -o yaml
+curl -s $STG/config | jq</pre></div>
+          <p class="why"><code>/config</code> โชว์ค่าจากทั้ง 2 ทาง: <code>fromEnv</code> และ <code>fromFile</code></p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m3-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>แก้ค่าแบบ env</strong>
+          <div class="code"><pre class="cmd">k -n $S patch cm nest-lab-env --type merge -p '{"data":{"GREETING":"Hello from team junior"}}'
+curl -s $STG/ | jq .message</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น (ยังเป็นค่าเก่า)</span><pre class="out">"Hello from STAGING"</pre></div>
+          <p class="why">ให้น้องเดาก่อนว่าทำไมยังไม่เปลี่ยน</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m3-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>restart แล้วดูอีกที</strong>
+          <div class="code"><pre class="cmd">k -n $S rollout restart deploy/nest-lab
+k -n $S rollout status deploy/nest-lab
+curl -s $STG/ | jq .message</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">"Hello from team junior"</pre></div>
+          <p class="why">env var ถูกอ่านแค่ครั้งเดียวตอน process เริ่ม แก้ ConfigMap อย่างเดียวจึงไม่พอ ต้องมี pod ใหม่</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m3-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>แก้ค่าแบบไฟล์ แล้วดูมันเปลี่ยนเอง</strong>
+          <div class="code"><pre class="cmd">k -n $S patch cm nest-lab-files --type merge \
+  -p '{"data":{"app-config.json":"{\"banner\":\"hot reloaded\",\"rateLimitPerMinute\":1}"}}'
+
+<span class="c"># จอ 2 (Ctrl-C เพื่อหยุด)</span>
+while true; do curl -s $STG/config | jq -c .fromFile.data; sleep 3; done</pre></div>
+          <p class="why">รอประมาณ 30–60 วินาที (ตอนทดสอบ lab นี้ใช้ ~36 วินาที) ค่าจะเปลี่ยนเองโดย pod ไม่ restart เช็กได้จาก <code>k -n $S get pod</code> ที่ AGE และ RESTARTS ไม่เปลี่ยน</p>
+        </div></li>
+        <li class="plain"><span></span><div class="body">
+          <div class="note"><b>ผู้สอน:</b> ย้ำว่า <code>kubectl patch</code> ใช้เพื่อเรียนเท่านั้น งานจริงแก้ ConfigMap ใน git (kustomize) แล้วให้ CI หรือ Argo CD apply ถ้า patch มือ รอบหน้ามีคน deploy ค่าจะถูกทับคืน</div>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- M4 -->
+  <section class="band" id="m4">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 8 · 15 นาที</span>
+        <h2>Deploy ไม่ล่ม</h2>
+        <p class="goal">ออก version ใหม่ระหว่างมีคนใช้งาน แล้วไม่มี request ไหน error</p>
+        <div class="meta"><span class="progress" data-progress="m4"></span></div>
+        <div class="idea"><span class="label">จอ 2: ยิง request ไม่หยุด</span><pre class="cmd" style="padding-right:14px;white-space:pre-wrap">while true; do curl -s -o /dev/null -w '%{http_code} ' $STG/; sleep 0.1; done</pre></div>
+      </div>
+      <ol class="steps" data-mission="m4">
+        <li><input class="check" type="checkbox" id="m4-0" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>build version ใหม่ (จอ 1)</strong>
+          <div class="code"><pre class="cmd">docker build --build-arg APP_VERSION=0.2.0 -t localhost:5001/nest-lab:0.2.0 .
+docker push localhost:5001/nest-lab:0.2.0</pre></div>
+          <p class="why">รอบนี้เร็วเพราะ Docker ใช้ layer ที่ cache ไว้จากภารกิจ 3 ทางลัดคือ <code>make image TAG=0.2.0</code></p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m4-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ออก version 0.2.0</strong>
+          <div class="code"><pre class="cmd">k -n $S set image deploy/nest-lab app=localhost:5001/nest-lab:0.2.0
+k -n $S rollout status deploy/nest-lab
+curl -s $STG/ | jq .version</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">"0.2.0"        จอ 2: 200 200 200 ... ไม่มีตัวอื่นเลย</pre></div>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m4-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>ดูว่า k8s ทำอะไรไป</strong>
+          <div class="code"><pre class="cmd">k -n $S get rs
+k -n $S rollout history deploy/nest-lab</pre></div>
+          <p class="why">ReplicaSet ของ version เก่าลดเหลือ 0 แต่ยังเก็บไว้ จึงย้อนกลับได้</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m4-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>ย้อนกลับ (rollback)</strong>
+          <div class="code"><pre class="cmd">k -n $S rollout undo deploy/nest-lab
+k -n $S rollout status deploy/nest-lab
+curl -s $STG/ | jq .version</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">"0.1.0"</pre></div>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m4-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>scale มือ แล้วดู HPA เอาคืน</strong>
+          <div class="code"><pre class="cmd">k -n $S scale deploy/nest-lab --replicas=4
+k -n $S get pod -o wide
+k -n $S get hpa -w</pre></div>
+          <p class="why">pod 4 ตัวกระจายไปทุก zone แต่ราว 1 นาทีต่อมา HPA จะลดกลับเหลือ 2 เพราะ CPU ต่ำ เมื่อมี HPA แล้ว HPA เป็นคนคุมจำนวน pod ไม่ใช่เรา</p>
+        </div></li>
+        <li class="plain"><span></span><div class="body">
+          <div class="tbl"><table>
+            <thead><tr><th>ทำไม user ไม่เห็น error</th><th>อยู่ตรงไหน</th></tr></thead>
+            <tbody>
+              <tr><td>สร้าง pod ใหม่ก่อน แล้วค่อยปิดตัวเก่า</td><td><code>maxUnavailable: 0</code></td></tr>
+              <tr><td>ส่ง request ให้เฉพาะ pod ที่ตอบ ready แล้ว</td><td><code>readinessProbe</code></td></tr>
+              <tr><td>ตัวเก่ารอ 5 วินาทีให้ request ที่ค้างอยู่เสร็จก่อนปิด</td><td><code>SHUTDOWN_DELAY_MS</code></td></tr>
+            </tbody>
+          </table></div>
+          <p class="why">ตอนทดสอบ lab นี้ยิง 6,123 request ระหว่าง rollout แล้ว error 0 ตัว</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- M5 -->
+  <section class="band" id="m5">
+    <div class="mission">
+      <div class="rail">
+        <span class="num">ภารกิจ 9 · 10 นาที</span>
+        <h2>pod พัง หาสาเหตุ</h2>
+        <p class="goal">ฝึกหาสาเหตุเองจาก <code>get</code> → <code>describe</code> → <code>logs</code></p>
+        <div class="meta"><span class="chip crash">CrashLoopBackOff</span><span class="progress" data-progress="m5"></span></div>
+        <div class="note"><b>ผู้สอน:</b> รัน 2 บรรทัดนี้เองโดยไม่บอกว่าแก้อะไร แล้วให้น้องหา<pre class="cmd" style="margin-top:8px;padding-right:14px;white-space:pre-wrap">k -n $S patch cm nest-lab-env --type merge -p '{"data":{"SHUTDOWN_DELAY_MS":"abc"}}'
+k -n $S rollout restart deploy/nest-lab</pre></div>
+      </div>
+      <ol class="steps" data-mission="m5">
+        <li><input class="check" type="checkbox" id="m5-1" aria-label="ขั้นที่ 1"><div class="body">
+          <strong>ดูภาพรวม</strong>
+          <div class="code"><pre class="cmd">k -n $S get pod
+curl -s -o /dev/null -w '%{http_code}\n' $STG/</pre></div>
+          <p class="why">pod ใหม่เป็น CrashLoopBackOff แต่ pod เก่ายัง Running และเว็บยังตอบ 200 เพราะ <code>maxUnavailable: 0</code> ไม่ปิดตัวเก่าจนกว่าตัวใหม่จะพร้อม</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m5-2" aria-label="ขั้นที่ 2"><div class="body">
+          <strong>describe pod ที่พัง</strong>
+          <div class="code"><pre class="cmd">k -n $S describe pod &lt;pod-ที่-CrashLoopBackOff&gt;</pre></div>
+          <p class="why">ดู <code>Last State: Terminated</code> และ Events ท้ายสุด (<code>Back-off restarting failed container</code>) รู้ว่าตายตอน start แต่ยังไม่รู้ว่าทำไม</p>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m5-3" aria-label="ขั้นที่ 3"><div class="body">
+          <strong>อ่าน log ของรอบที่ตาย</strong>
+          <div class="code"><pre class="cmd">k -n $S logs &lt;pod-ที่-CrashLoopBackOff&gt; --previous</pre></div>
+          <div class="out-wrap"><span class="label">ควรเห็น</span><pre class="out">Invalid SHUTDOWN_DELAY_MS="abc": expected a non-negative integer</pre></div>
+        </div></li>
+        <li><input class="check" type="checkbox" id="m5-4" aria-label="ขั้นที่ 4"><div class="body">
+          <strong>แก้ที่ต้นเหตุ</strong>
+          <div class="code"><pre class="cmd">k -n $S patch cm nest-lab-env --type merge -p '{"data":{"SHUTDOWN_DELAY_MS":"5000"}}'
+k -n $S rollout restart deploy/nest-lab
+k -n $S get pod -w</pre></div>
+          <p class="why"><code>rollout undo</code> ช่วยไม่ได้ เพราะ pod ทุก version อ่าน ConfigMap ตัวเดียวกันที่พังอยู่ และการลบ pod วนไปมาก็ไม่ช่วย ต้องแก้ config</p>
+        </div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- WRAP -->
+  <section class="band" id="wrap">
+    <div class="stack" style="gap:32px">
+      <div class="stack" style="gap:12px">
+        <span class="label">สรุป · 5 นาที</span>
+        <h2>เจอ pod มีปัญหา ทำตามลำดับนี้</h2>
+      </div>
+      <div class="loop">
+        <div><h3><code>get pod</code></h3><p class="why">STATUS อะไร RESTARTS กี่ครั้ง อยู่ node ไหน</p></div>
+        <div><h3><code>describe pod</code></h3><p class="why">อ่าน Events ท้ายสุด: ดึง image ไม่ได้ หา Secret ไม่เจอ probe fail</p></div>
+        <div><h3><code>logs --previous</code></h3><p class="why">ถ้า RESTARTS มากกว่า 0 สาเหตุมักอยู่ใน log ของรอบที่ตาย</p></div>
+        <div><h3>แก้ที่ต้นเหตุ</h3><p class="why">config, image หรือ resource ไม่ใช่ลบ pod ซ้ำ ๆ</p></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>STATUS</th><th>แปลว่า</th><th>ดูอะไรก่อน</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip pend">Pending</span></td><td>หา node ลงไม่ได้</td><td><code>describe pod</code> ดู Events (resource ไม่พอ, taint)</td></tr>
+          <tr><td><span class="chip crash">ImagePullBackOff</span></td><td>ดึง image ไม่ได้</td><td>ชื่อ/tag ถูกไหม push แล้วหรือยัง</td></tr>
+          <tr><td><span class="chip crash">CreateContainerConfigError</span></td><td>หา ConfigMap/Secret ไม่เจอ</td><td><code>describe pod</code> บอกชื่อที่หาไม่เจอ</td></tr>
+          <tr><td><span class="chip crash">CrashLoopBackOff</span></td><td>app start แล้วตายซ้ำ</td><td><code>logs --previous</code></td></tr>
+          <tr><td><span class="chip pend">Running 0/1</span></td><td>readiness ไม่ผ่าน ไม่ได้รับ traffic</td><td><code>describe pod</code> ดู Readiness probe failed</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="stack" style="gap:4px">
+        <h3>คำถามทบทวน</h3>
+        <details class="q"><summary>ลบ pod แล้วทำไมมันกลับมาเอง</summary><p>Deployment บอกว่าอยากได้ 2 ตัว ReplicaSet เห็นเหลือ 1 เลยสร้างเพิ่ม ถ้าอยากให้หายจริงต้อง scale หรือลบ Deployment</p></details>
+        <details class="q"><summary>แก้ GREETING ใน ConfigMap แล้วเว็บยังโชว์ค่าเก่า ต้องทำอะไร</summary><p><code>rollout restart</code> เพราะ env var ถูกอ่านตอน process เริ่มครั้งเดียว ถ้าเป็น ConfigMap ที่ mount เป็นไฟล์จะเปลี่ยนเองใน ~1 นาที</p></details>
+        <details class="q"><summary>liveness fail กับ readiness fail ต่างกันยังไง</summary><p>liveness fail = restart container. readiness fail = เอาออกจาก Service ชั่วคราว pod ยังอยู่</p></details>
+        <details class="q"><summary>ทำไม rollout แล้ว user ไม่เห็น error</summary><p><code>maxUnavailable: 0</code> สร้างตัวใหม่ก่อนปิดตัวเก่า, readinessProbe ส่ง traffic ให้เฉพาะตัวที่พร้อม และตัวเก่ารอ request ค้างให้เสร็จก่อนปิด</p></details>
+        <details class="q"><summary>pod เป็น CrashLoopBackOff คำสั่งแรกที่ควรรันคืออะไร</summary><p><code>kubectl logs &lt;pod&gt; --previous</code> เพื่อดูว่า container รอบก่อนตายเพราะอะไร แล้วตามด้วย <code>describe pod</code> ดู Events</p></details>
+      </div>
+
+      <div class="mission" style="gap:24px">
+        <div class="stack" style="gap:8px">
+          <h3>จบคาบ: คืนค่าเดิม</h3>
+          <p class="why">deploy จาก manifest ใน repo ทับค่าที่ patch ไว้ทั้งหมด</p>
+        </div>
+        <div class="code"><pre class="cmd">make deploy</pre></div>
+      </div>
+      <div class="mission" style="gap:24px">
+        <div class="stack" style="gap:8px">
+          <h3>เลิกใช้แล้ว: ปิดหรือลบ cluster</h3>
+          <p class="why"><code>make stop</code> หยุดไว้ใช้ต่อ ส่วน <code>make down</code> ลบ cluster, volume และ image ใน registry ทั้งหมด ย้อนกลับไม่ได้ ต้องเริ่มจากภารกิจ 2 ใหม่</p>
+        </div>
+        <div class="code"><pre class="cmd">make stop     <span class="c"># พักไว้ เปิดต่อด้วย make start</span>
+make down     <span class="c"># ลบทิ้งทั้งหมด</span></pre></div>
+      </div>
+      <p>อยากไปต่อ: <code>LAB.md</code> มีอีก 12 lab (Secret, NetworkPolicy, HPA ภายใต้โหลด, drain node, AZ ล่ม, RBAC) และ <code>docs/kubernetes-101.html</code> มีเนื้อหาฉบับเต็ม</p>
+    </div>
+  </section>
+
+  <footer>k8s-nest-lab · ใช้คู่กับ LAB.md · cluster รันบน Docker Compose ในเครื่อง ไม่มีค่าใช้จ่าย AWS</footer>
+</div>
+
+<script>
+(function () {
+  var KEY = "k8s-workshop-progress";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var checks = Array.prototype.slice.call(document.querySelectorAll(".check"));
+
+  function render() {
+    var total = 0;
+    document.querySelectorAll("ol.steps[data-mission]").forEach(function (ol) {
+      var id = ol.getAttribute("data-mission");
+      var boxes = ol.querySelectorAll(".check");
+      var done = 0;
+      boxes.forEach(function (b) {
+        b.checked = !!state[b.id];
+        b.closest("li").classList.toggle("is-done", b.checked);
+        if (b.checked) done++;
+      });
+      total += done;
+      var p = document.querySelector('[data-progress="' + id + '"]');
+      if (p) p.textContent = done + "/" + boxes.length + " ขั้น";
+      var seg = document.querySelector('.timeline a[data-m="' + id + '"]');
+      if (seg) seg.classList.toggle("done", done === boxes.length);
+    });
+    document.getElementById("total").textContent = "ทำไปแล้ว " + total + " จาก " + checks.length + " ขั้น";
+  }
+
+  checks.forEach(function (b) {
+    b.addEventListener("change", function () {
+      if (b.checked) state[b.id] = true; else delete state[b.id];
+      save(); render();
+    });
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    state = {}; save(); render();
+  });
+
+  // Copy the command text without the inline comments.
+  document.querySelectorAll(".code > pre.cmd").forEach(function (pre) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    btn.textContent = "copy";
+    btn.setAttribute("aria-label", "คัดลอกคำสั่ง");
+    pre.parentNode.appendChild(btn);
+    btn.addEventListener("click", function () {
+      var clone = pre.cloneNode(true);
+      clone.querySelectorAll(".c").forEach(function (c) { c.remove(); });
+      var text = clone.textContent.split("\n").map(function (l) { return l.replace(/\s+$/, ""); }).join("\n").trim();
+      function ok() { btn.textContent = "copied"; btn.classList.add("ok"); setTimeout(function () { btn.textContent = "copy"; btn.classList.remove("ok"); }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = "กด ⌘C";
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else { fallback(); }
+    });
+  });
+
+  render();
+})();
+</script>

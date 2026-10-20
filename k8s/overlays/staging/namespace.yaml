@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nest-lab-staging
+  labels:
+    # Same Pod Security Standard most EKS platforms enforce for app namespaces.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted

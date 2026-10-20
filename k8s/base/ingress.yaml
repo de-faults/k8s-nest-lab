@@ -1,0 +1,19 @@
+# Traefik (bundled with k3s) stands in for the AWS Load Balancer Controller.
+# On EKS: ingressClassName: alb + alb.ingress.kubernetes.io/* annotations.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nest-lab
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: nest-lab.localhost # patched per overlay
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nest-lab
+                port:
+                  name: http

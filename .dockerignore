@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.kube
+cluster
+k8s
+test
+*.md
+Dockerfile
+.dockerignore
+compose.yaml
+Makefile
+.git

@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nest-lab-prod
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+labels:
+  - pairs:
+      environment: production
+
+images:
+  - name: nest-lab
+    newName: localhost:5001/nest-lab
+    newTag: 0.1.0
+
+patches:
+  - target:
+      kind: Ingress
+      name: nest-lab
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.nest-lab.localhost
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nest-lab-env
+      data:
+        APP_ENV: production
+        GREETING: Hello from PRODUCTION
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nest-lab-files
+      data:
+        app-config.json: |
+          {
+            "featureFlags": {
+              "newCheckout": false,
+              "darkMode": true
+            },
+            "rateLimitPerMinute": 60,
+            "banner": "production config"
+          }

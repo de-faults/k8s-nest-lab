@@ -1,0 +1,14 @@
+# Injected as environment variables (envFrom). Changes here do NOT reach
+# running pods until they are recreated: `kubectl rollout restart deploy/nest-lab`.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nest-lab-env
+data:
+  APP_NAME: nest-lab
+  APP_ENV: base
+  LOG_LEVEL: log
+  LOG_FORMAT: json
+  GREETING: Hello from Kubernetes
+  CHAOS_ENABLED: "false"
+  SHUTDOWN_DELAY_MS: "5000"

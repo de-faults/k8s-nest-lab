@@ -1,0 +1,6 @@
+# Nodes pull "localhost:5001/..." images from the registry container,
+# the way EKS nodes pull from ECR. Plain HTTP is fine inside the lab network.
+mirrors:
+  "localhost:5001":
+    endpoint:
+      - "http://registry:5000"

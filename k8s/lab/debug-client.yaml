@@ -1,0 +1,33 @@
+# Long-running shell pod for the lab, compliant with the "restricted" Pod
+# Security Standard. The nest-lab-client label is what NetworkPolicy allows;
+# remove it to see traffic blocked:  kubectl label pod debug-client nest-lab-client-
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-client
+  labels:
+    nest-lab-client: "true"
+spec:
+  automountServiceAccountToken: false
+  terminationGracePeriodSeconds: 0
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: shell
+      image: busybox:1.37
+      command: ["sleep", "infinity"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          memory: 64Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]

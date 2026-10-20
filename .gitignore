@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.kube/
+*.tsbuildinfo
+.DS_Store
+.hallmark/
