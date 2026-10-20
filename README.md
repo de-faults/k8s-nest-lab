@@ -4,6 +4,13 @@ NestJS app + local Kubernetes cluster ที่จำลอง production บน
 
 แบบฝึกหัดทั้งหมดอยู่ใน **[LAB.md](LAB.md)**
 
+เอกสารประกอบการสอน (เปิดออนไลน์ หรือเปิดไฟล์ใน `docs/` ด้วย browser):
+
+| เอกสาร | ออนไลน์ | ไฟล์ |
+|---|---|---|
+| Kubernetes 101 (เนื้อหาเต็ม ~4 ชม.) | [claude.ai artifact](https://claude.ai/artifact/TNbC38mYHUb7c7eL8Pzxed) | [docs/kubernetes-101.html](docs/kubernetes-101.html) |
+| Workshop สำหรับ junior (ติดตั้ง → deploy → debug ~2 ชม. 20 นาที) | [claude.ai artifact](https://claude.ai/artifact/2TfpGGneztVComhnNExq4w) | [docs/k8s-workshop.html](docs/k8s-workshop.html) |
+
 ## โครงสร้าง cluster
 
 ```
@@ -114,6 +121,6 @@ k8s/overlays/staging/     namespace nest-lab-staging, 2 replicas, chaos on, debu
 k8s/overlays/production/  namespace nest-lab-prod, 3 replicas, chaos off
 k8s/lab/                  debug-client.yaml (shell pod), generator/ (configMapGenerator demo)
 docs/kubernetes-101.html  เอกสารประกอบการสอน (เปิดใน browser ได้)
-docs/k8s-workshop.html    workshop 90 นาทีสำหรับ junior
+docs/k8s-workshop.html    workshop สำหรับ junior (ติดตั้งถึง deploy)
 src/                      NestJS app
 ```
